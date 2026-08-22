@@ -8,7 +8,9 @@
     "fix": "ultracite fix",
     "prepare": "lefthook install",
     "typecheck": "tsc --noEmit",
-    "test": "bun test"
+    "test": "bun test",
+    "alchemy:check": "bunx alchemy plan alchemy.run.ts --stage dev_fxinstagram --profile default",
+    "alchemy:deploy": "bunx alchemy deploy alchemy.run.ts --stage dev_fxinstagram --profile default"
   },
   "devDependencies": {
     "@effect/platform-bun": "4.0.0-rc.111",

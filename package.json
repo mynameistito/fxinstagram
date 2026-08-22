@@ -6,7 +6,8 @@
   "scripts": {
     "check": "ultracite check",
     "fix": "ultracite fix",
-    "prepare": "lefthook install"
+    "prepare": "lefthook install",
+    "typecheck": "tsc --noEmit"
   },
   "devDependencies": {
     "@effect/platform-bun": "4.0.0-rc.111",

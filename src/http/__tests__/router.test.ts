@@ -9,7 +9,9 @@ const fixture = {
   username: "alice",
 };
 
+// oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("real Bun HTTP router", () => {
+  // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
   test("redirects humans before metadata lookup", async () => {
     const server = await startServer({
       fixtures: new Map(),

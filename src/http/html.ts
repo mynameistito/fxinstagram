@@ -52,6 +52,7 @@ export const renderDocument = (document: EmbedDocument): string => {
 
 export const htmlResponse = (
   document: EmbedDocument,
+  // oxlint-disable-next-line sonarjs/max-union-size -- HTTP status is intentionally explicit.
   status: 200 | 404 | 422 | 429 | 503
 ): Response =>
   new Response(renderDocument(document), {

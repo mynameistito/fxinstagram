@@ -3,7 +3,9 @@ import { describe, expect, test } from "bun:test";
 import { renderDocument } from "../html.ts";
 import { classifyUserAgent, statusForError } from "../policy.ts";
 
+// oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("HTTP policies and projection", () => {
+  // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
   test("defaults unknown and empty agents to humans", () => {
     expect(classifyUserAgent("")).toBe("human");
     expect(classifyUserAgent("Mozilla/5.0")).toBe("human");

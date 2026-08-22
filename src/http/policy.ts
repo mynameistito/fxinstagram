@@ -24,6 +24,7 @@ export const classifyUserAgent = (value: string): RequestAudience => {
 
 export const statusForError = (
   error: EmbedApplicationError
+  // oxlint-disable-next-line sonarjs/max-union-size -- HTTP status mapping is intentionally explicit.
 ): 404 | 422 | 429 | 503 => {
   switch (error._tag) {
     case "MetadataNotFound":
@@ -42,9 +43,13 @@ export const statusForError = (
     case "CacheUnavailable": {
       return 503;
     }
+    default: {
+      return 503;
+    }
   }
 };
 
+// oxlint-disable-next-line sonarjs/max-union-size -- HTTP status mapping is intentionally explicit.
 export const errorDescription = (status: 404 | 422 | 429 | 503): string => {
   switch (status) {
     case 404: {
@@ -58,6 +63,9 @@ export const errorDescription = (status: 404 | 422 | 429 | 503): string => {
     }
     case 503: {
       return "Instagram metadata is temporarily unavailable.";
+    }
+    default: {
+      return "The request could not be completed.";
     }
   }
 };

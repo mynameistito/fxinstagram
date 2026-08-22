@@ -11,6 +11,12 @@ import {
   statusForError,
 } from "./policy.ts";
 
+const instagramOrigin = "https://instagram.com";
+
+const userAgent = (request: Request): string =>
+  request.headers.get("user-agent") ?? "";
+
+// oxlint-disable-next-line sonarjs/max-union-size -- HTTP status is intentionally explicit.
 const errorDocument = (origin: URL, status: 404 | 422 | 429 | 503) => ({
   canonicalUrl: origin,
   card: "summary_large_image" as const,
@@ -54,7 +60,7 @@ const requestFor = (
     parseEmbedRequest(location, {
       headers: headerMode === null ? {} : { "x-embed-type": headerMode },
       query: Object.fromEntries(url.searchParams.entries()),
-      userAgent: request.headers.get("user-agent") ?? "",
+      userAgent: userAgent(request),
     })
   );
 };
@@ -69,7 +75,7 @@ const responseFor = async (
   if (result._tag === "Failure") {
     const status = statusForError(result.failure);
     return htmlResponse(
-      errorDocument(new URL("https://instagram.com"), status),
+      errorDocument(new URL(instagramOrigin), status),
       status
     );
   }
@@ -83,110 +89,130 @@ const responseFor = async (
   return htmlResponse(response.document, response.status);
 };
 
+const handleOembed = async (
+  service: EmbedService,
+  request: Request,
+  url: URL
+): Promise<Response> => {
+  const target = url.searchParams.get("url");
+  if (target === null) {
+    return new Response("invalid oembed url", { status: 422 });
+  }
+  const parsed = await Effect.runPromise(
+    Effect.result(parseInstagramUrl(target))
+  );
+  if (parsed._tag === "Failure") {
+    return new Response("invalid oembed url", { status: 422 });
+  }
+  const embed = await responseFor(service, {
+    location: parsed.success,
+    mode: "standard",
+    userAgent: userAgent(request),
+  });
+  if (embed.status !== 200) {
+    return embed;
+  }
+  return Response.json(
+    {
+      html: await embed.text(),
+      provider_name: "Instagram",
+      provider_url: `${instagramOrigin}/`,
+      title: "Instagram embed",
+      type: "rich",
+      version: "1.0",
+    },
+    { headers: { "X-Content-Type-Options": "nosniff" } }
+  );
+};
+
+const handleMedia = async (
+  service: EmbedService,
+  request: Request,
+  parts: readonly string[]
+): Promise<Response | undefined> => {
+  const [mediaRoute, shortcode, mediaIndex] = parts;
+  if (parts.length !== 3) {
+    return undefined;
+  }
+  if (mediaRoute !== "images" && mediaRoute !== "videos") {
+    return undefined;
+  }
+  if (shortcode === undefined || mediaIndex === undefined) {
+    return undefined;
+  }
+  const parsed = await Effect.runPromise(
+    Effect.result(
+      parseInstagramUrl(
+        `${instagramOrigin}/p/${shortcode}?img_index=${mediaIndex}`
+      )
+    )
+  );
+  if (parsed._tag === "Failure") {
+    return new Response("invalid media route", { status: 422 });
+  }
+  const media = await Effect.runPromise(
+    Effect.result(
+      service.resolveMedia({
+        location: parsed.success,
+        mode: "direct",
+        userAgent: userAgent(request),
+      })
+    )
+  );
+  if (media._tag === "Failure") {
+    const status = statusForError(media.failure);
+    return htmlResponse(
+      errorDocument(new URL(instagramOrigin), status),
+      status
+    );
+  }
+  if (media.success.type !== mediaRoute.slice(0, -1)) {
+    return new Response("media type mismatch", { status: 404 });
+  }
+  return new Response(null, {
+    headers: { Location: media.success.url.toString() },
+    status: 302,
+  });
+};
+
+const handleContent = async (
+  service: EmbedService,
+  request: Request,
+  url: URL
+): Promise<Response> => {
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (parts[0] === "grid" && parts.length === 2) {
+    url.searchParams.set("gallery", "1");
+  }
+  const target = routeTarget(url);
+  if (target === undefined) {
+    return new Response("not found", { status: 404 });
+  }
+  const parsed = await Effect.runPromise(
+    Effect.result(requestFor(url, request))
+  );
+  if (parsed._tag === "Failure") {
+    return htmlResponse(errorDocument(new URL(instagramOrigin), 422), 422);
+  }
+  if (classifyUserAgent(parsed.success.userAgent) === "human") {
+    return new Response(null, {
+      headers: {
+        Location: `${instagramOrigin}${target.replace(/^https:\/\/instagram\.com/u, "")}`,
+      },
+      status: 302,
+    });
+  }
+  return responseFor(service, parsed.success);
+};
+
 export const makeRouter =
   (service: EmbedService) =>
   async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const parts = url.pathname.split("/").filter(Boolean);
     if (parts[0] === "oembed") {
-      const target = url.searchParams.get("url");
-      if (target === null) {
-        return new Response("invalid oembed url", { status: 422 });
-      }
-      const parsed = await Effect.runPromise(
-        Effect.result(parseInstagramUrl(target))
-      );
-      if (parsed._tag === "Failure") {
-        return new Response("invalid oembed url", { status: 422 });
-      }
-      const embed = await responseFor(service, {
-        location: parsed.success,
-        mode: "standard",
-        userAgent: request.headers.get("user-agent") ?? "",
-      });
-      if (embed.status !== 200) {
-        return embed;
-      }
-      const document = await embed.text();
-      return new Response(
-        JSON.stringify({
-          html: document,
-          provider_name: "Instagram",
-          provider_url: "https://instagram.com/",
-          title: "Instagram embed",
-          type: "rich",
-          version: "1.0",
-        }),
-        {
-          headers: {
-            "Content-Type": "application/json; charset=utf-8",
-            "X-Content-Type-Options": "nosniff",
-          },
-        }
-      );
+      return handleOembed(service, request, url);
     }
-    if (["images", "videos"].includes(parts[0] ?? "") && parts.length === 3) {
-      const parsed = await Effect.runPromise(
-        Effect.result(
-          parseInstagramUrl(
-            `https://instagram.com/p/${parts[1] ?? ""}?img_index=${parts[2] ?? ""}`
-          )
-        )
-      );
-      if (parsed._tag === "Failure") {
-        return new Response("invalid media route", { status: 422 });
-      }
-      const media = await Effect.runPromise(
-        Effect.result(
-          service.resolveMedia({
-            location: parsed.success,
-            mode: "direct",
-            userAgent: request.headers.get("user-agent") ?? "",
-          })
-        )
-      );
-      if (media._tag === "Failure") {
-        const status = statusForError(media.failure);
-        return htmlResponse(
-          errorDocument(new URL("https://instagram.com"), status),
-          status
-        );
-      }
-      const mediaRoute = parts[0];
-      if (
-        mediaRoute === undefined ||
-        media.success.type !== mediaRoute.slice(0, -1)
-      ) {
-        return new Response("media type mismatch", { status: 404 });
-      }
-      return new Response(null, {
-        headers: { Location: media.success.url.toString() },
-        status: 302,
-      });
-    }
-    if (parts[0] === "grid" && parts.length === 2) {
-      url.searchParams.set("gallery", "1");
-    }
-    const target = routeTarget(url);
-    if (target === undefined) {
-      return new Response("not found", { status: 404 });
-    }
-    const parsed = await Effect.runPromise(
-      Effect.result(requestFor(url, request))
-    );
-    if (parsed._tag === "Failure") {
-      return htmlResponse(
-        errorDocument(new URL("https://instagram.com"), 422),
-        422
-      );
-    }
-    if (classifyUserAgent(parsed.success.userAgent) === "human") {
-      return new Response(null, {
-        headers: {
-          Location: `https://instagram.com${target.replace(/^https:\/\/instagram\.com/u, "")}`,
-        },
-        status: 302,
-      });
-    }
-    return responseFor(service, parsed.success);
+    const media = await handleMedia(service, request, parts);
+    return media ?? handleContent(service, request, url);
   };

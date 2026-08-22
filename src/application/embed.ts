@@ -6,10 +6,12 @@ import type { MediaSelection, MetadataError } from "../domain/media.ts";
 import type { CacheError } from "./cache.ts";
 import { MetadataServiceTag } from "./metadata.ts";
 
+// oxlint-disable-next-line sonarjs/max-union-size -- This is the public projection contract.
 export type EmbedResponse =
   | { readonly _tag: "Redirect"; readonly location: URL }
   | {
       readonly _tag: "Html";
+      // oxlint-disable-next-line sonarjs/max-union-size -- HTTP status is intentionally explicit.
       readonly status: 200 | 404 | 422 | 429 | 503;
       readonly document: EmbedDocument;
     }
@@ -72,9 +74,11 @@ const isSafeMediaUrl = (url: URL, hosts: ReadonlySet<string>): boolean =>
   url.password === "" &&
   hosts.has(url.hostname.toLowerCase());
 
+const canonicalHosts = new Set(["instagram.com", "www.instagram.com"]);
+
 const isSafeCanonicalUrl = (url: URL): boolean =>
   url.protocol === "https:" &&
-  (url.hostname === "instagram.com" || url.hostname === "www.instagram.com") &&
+  canonicalHosts.has(url.hostname) &&
   url.username === "" &&
   url.password === "";
 
@@ -85,22 +89,24 @@ const selectedUrl = (selection: MediaSelection): URL | undefined => {
   return selection.media.url;
 };
 
+const hasSafeMedia = (
+  media: readonly { readonly url: URL }[],
+  hosts: ReadonlySet<string>
+): boolean => media.every((item) => isSafeMediaUrl(item.url, hosts));
+
 export const makeEmbedService = (
   config: EmbedServiceConfig
 ): Effect.Effect<EmbedService, never, MetadataServiceTag> =>
   Effect.gen(function* buildEmbedService() {
     const metadata = yield* MetadataServiceTag;
     const resolve = (request: EmbedRequest) =>
+      // oxlint-disable-next-line sonarjs/no-nested-functions -- Effect requires the scoped operation body.
       Effect.gen(function* resolveEmbed() {
         const post = yield* metadata.get(request.location);
         if (!isSafeCanonicalUrl(post.canonicalUrl)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
-        if (
-          post.media.some(
-            (media) => !isSafeMediaUrl(media.url, config.mediaHosts)
-          )
-        ) {
+        if (!hasSafeMedia(post.media, config.mediaHosts)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
         const selection = yield* selectMedia(request, post.media);

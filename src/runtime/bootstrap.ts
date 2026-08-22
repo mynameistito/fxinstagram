@@ -3,10 +3,10 @@ import { Effect, Layer } from "effect";
 export { startServer } from "./server.ts";
 
 /** The observable result returned by the baseline application bootstrap. */
-export type BootstrapResult = {
+export interface BootstrapResult {
   readonly service: "fxinstagram";
   readonly status: "ok";
-};
+}
 
 const runtimeLayer = Layer.empty;
 

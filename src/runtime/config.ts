@@ -106,7 +106,7 @@ export const parseAppConfig = (
       raw.METADATA_CACHE_TTL_SECONDS
     );
     const allowedMediaHosts = yield* parseHosts(raw.ALLOWED_MEDIA_HOSTS);
-    const credential = input.METADATA_PROVIDER_TOKEN;
+    const credential = input.METADATA_PROVIDER_TOKEN?.trim();
     const result: AppConfig = {
       allowedMediaHosts,
       metadataCacheTtlSeconds,

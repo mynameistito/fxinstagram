@@ -18,7 +18,7 @@ Alchemy and Cloudflare dependencies are already present, but there is no deploym
 ## Current state
 
 - `package.json` includes `alchemy` `2.0.0-beta.74`, `@effect/platform-bun`, and `@effect/platform-node` `4.0.0-rc.111`.
-- There is no `alchemy.run.ts`, Wrangler config, worker entrypoint, environment schema, or deployment documentation.
+- `alchemy.run.ts` is the deployment source of truth. It defines the native Worker, its `src/runtime/worker.ts` bundle entrypoint, environment bindings, defaults, and Alchemy state.
 - `index.ts` is a one-line Bun program; Plan 004 will define the local HTTP composition root.
 
 Alchemy beta APIs and Effect RC APIs are version-sensitive. Read the installed package examples and current Alchemy documentation before choosing resource constructors. Do not rely on remembered API names.

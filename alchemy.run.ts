@@ -1,4 +1,4 @@
-import { Stack } from "alchemy";
+import { localState, Stack } from "alchemy";
 import {
   Worker as CloudflareWorker,
   providers,
@@ -22,6 +22,10 @@ const workerEnvironment = {
   PUBLIC_ORIGIN: CloudflareWorker.URL,
 };
 
+const isAlchemyDev = ["1", "true"].includes(
+  process.env.ALCHEMY_DEV?.toLowerCase() ?? ""
+);
+
 export const Worker = CloudflareWorker("FxinstagramWorker", {
   env: workerEnvironment,
   main: "./src/runtime/worker.ts",
@@ -30,7 +34,10 @@ export const Worker = CloudflareWorker("FxinstagramWorker", {
 
 export default Stack(
   "fxinstagram",
-  { providers: providers(), state: state() },
+  {
+    providers: providers(),
+    state: isAlchemyDev ? localState() : state(),
+  },
   Effect.gen(function* defineStack() {
     const worker = yield* Worker;
     return { url: worker.url };

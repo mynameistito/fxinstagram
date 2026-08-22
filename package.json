@@ -9,6 +9,7 @@
     "prepare": "lefthook install",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
+    "dev": "bunx alchemy dev alchemy.run.ts",
     "alchemy:check": "bunx alchemy plan alchemy.run.ts --stage dev_fxinstagram --profile default",
     "alchemy:deploy": "bunx alchemy deploy alchemy.run.ts --stage dev_fxinstagram --profile default"
   },

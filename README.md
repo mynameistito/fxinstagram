@@ -1,15 +1,25 @@
 # fxinstagram
 
-To install dependencies:
+The service is under construction. This baseline does not need credentials, and deployment and runtime configuration will be added in a later plan.
 
-```bash
+`bun run check` currently reports a pre-existing compatibility limitation: the configured `eslint-plugin-github` cannot load with the repository's TypeScript 7 toolchain. Formatting still runs and passes; this baseline does not modify `.agents/` or the lint configuration to work around it.
+
+Install dependencies:
+
+```sh
 bun install
 ```
 
-To run:
+Run the verification gates:
 
-```bash
-bun run index.ts
+```sh
+bun run check
+bun run typecheck
+bun test
 ```
 
-This project was created using `bun init` in bun v1.4.0. [Bun](https://bun.com) is a fast all-in-one JavaScript runtime.
+Run the application:
+
+```sh
+bun run index.ts
+```

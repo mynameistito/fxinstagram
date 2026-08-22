@@ -1,5 +1,7 @@
 import { Effect, Layer } from "effect";
 
+export { startServer } from "./server.ts";
+
 /** The observable result returned by the baseline application bootstrap. */
 export type BootstrapResult = {
   readonly service: "fxinstagram";

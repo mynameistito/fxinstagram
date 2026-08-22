@@ -9,9 +9,9 @@
     "prepare": "lefthook install",
     "typecheck": "tsc --noEmit",
     "test": "bun test",
-    "dev": "bun run scripts/alchemy-dev.ts",
-    "alchemy:check": "bunx alchemy plan alchemy.run.ts --stage dev_fxinstagram --profile default",
-    "alchemy:deploy": "bunx alchemy deploy alchemy.run.ts --stage dev_fxinstagram --profile default"
+    "dev": "bun alchemy dev alchemy.run.ts",
+    "alchemy:check": "bun alchemy plan alchemy.run.ts --stage dev_fxinstagram",
+    "alchemy:deploy": "bun alchemy deploy alchemy.run.ts --stage dev_fxinstagram"
   },
   "devDependencies": {
     "@effect/platform-bun": "4.0.0-rc.111",

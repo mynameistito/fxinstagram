@@ -38,7 +38,13 @@ const parseOrigin = (value: string): Effect.Effect<URL, ConfigurationError> => {
     const hasCredentials = origin.username !== "" || origin.password !== "";
     const hasPathOrQuery =
       origin.pathname !== "/" || origin.search !== "" || origin.hash !== "";
-    if (origin.protocol !== "https:" || hasCredentials || hasPathOrQuery) {
+    const isLoopback = new Set(["localhost", "127.0.0.1", "[::1]"]).has(
+      origin.hostname.toLowerCase()
+    );
+    const hasSafeProtocol =
+      origin.protocol === "https:" ||
+      (origin.protocol === "http:" && isLoopback);
+    if (!hasSafeProtocol || hasCredentials || hasPathOrQuery) {
       return Effect.fail(
         new ConfigurationError({ field: "PUBLIC_ORIGIN", reason: "invalid" })
       );
@@ -125,7 +131,7 @@ export const localEnvironment = (input: Environment = process.env) => {
     METADATA_CACHE_TTL_SECONDS: input.METADATA_CACHE_TTL_SECONDS ?? "60",
     METADATA_TIMEOUT_MS: input.METADATA_TIMEOUT_MS ?? "1000",
     PUBLIC_ORIGIN:
-      input.PUBLIC_ORIGIN ?? `https://127.0.0.1:${input.PORT ?? "8787"}`,
+      input.PUBLIC_ORIGIN ?? `http://127.0.0.1:${input.PORT ?? "8787"}`,
   } satisfies Environment;
   if (input.METADATA_PROVIDER_TOKEN !== undefined) {
     return {

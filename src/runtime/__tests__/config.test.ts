@@ -24,6 +24,33 @@ describe("runtime configuration", () => {
     expect(String(config.providerCredential)).not.toContain("secret-token");
   });
 
+  test("allows HTTP origins only for local development", () => {
+    for (const publicOrigin of [
+      "http://localhost:1337/",
+      "http://127.0.0.1:1337/",
+      "http://[::1]:1337/",
+    ]) {
+      const config = Effect.runSync(
+        parseAppConfig({ ...valid, PUBLIC_ORIGIN: publicOrigin })
+      );
+      expect(config.publicOrigin.href).toBe(publicOrigin);
+    }
+
+    expect(
+      Effect.runSync(
+        Effect.result(
+          parseAppConfig({
+            ...valid,
+            PUBLIC_ORIGIN: "http://fxinstagram.example/",
+          })
+        )
+      )
+    ).toMatchObject({
+      _tag: "Failure",
+      failure: { field: "PUBLIC_ORIGIN", reason: "invalid" },
+    });
+  });
+
   test("rejects missing values, unsafe origins, and invalid bounds", () => {
     expect(Effect.runSync(Effect.result(parseAppConfig({})))).toMatchObject({
       _tag: "Failure",

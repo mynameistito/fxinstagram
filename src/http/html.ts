@@ -54,8 +54,15 @@ export const htmlResponse = (
   document: EmbedDocument,
   // oxlint-disable-next-line sonarjs/max-union-size -- HTTP status is intentionally explicit.
   status: 200 | 404 | 422 | 429 | 503
-): Response =>
-  new Response(renderDocument(document), {
+): Response => {
+  const body = renderDocument(document);
+  if (body.length > 16_384) {
+    return new Response("embed response too large", {
+      headers: { "Content-Type": "text/plain; charset=utf-8" },
+      status: 422,
+    });
+  }
+  return new Response(body, {
     headers: {
       "Cache-Control": "public, max-age=60",
       "Content-Security-Policy": "default-src 'none'; base-uri 'none'",
@@ -64,3 +71,4 @@ export const htmlResponse = (
     },
     status,
   });
+};

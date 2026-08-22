@@ -27,6 +27,8 @@ export type ParseInstagramUrlError =
 const Host = Union([Literal("instagram.com"), Literal("www.instagram.com")]);
 const Shortcode = /^[A-Za-z0-9_-]+$/u;
 const Username = /^[A-Za-z0-9._]+$/u;
+const maxShortcodeLength = 64;
+const maxUsernameLength = 64;
 
 const routeKind = (segment: string): InstagramPostKind | undefined => {
   if (segment === "p") {
@@ -67,10 +69,13 @@ const location = (
   username: string | undefined,
   mediaIndex: number
 ): Effect.Effect<InstagramLocation, ParseInstagramUrlError> => {
-  if (!Shortcode.test(shortcode)) {
+  if (!Shortcode.test(shortcode) || shortcode.length > maxShortcodeLength) {
     return Effect.fail({ _tag: "InvalidShortcode" });
   }
-  if (username !== undefined && !Username.test(username)) {
+  if (
+    username !== undefined &&
+    (!Username.test(username) || username.length > maxUsernameLength)
+  ) {
     return Effect.fail({ _tag: "InvalidShortcode" });
   }
   return Effect.succeed(

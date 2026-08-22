@@ -2,18 +2,18 @@
 
 These plans describe a greenfield TypeScript/Bun service for fixing Instagram embeds in Discord, using Effect for capability boundaries and Alchemy for Cloudflare deployment. They are based on the current workspace at the time of planning and on the public behavior of the archived `Wikidepia/InstaFix` project.
 
-The workspace is not a Git repository, so no commit SHA is available for drift checks. Executors must compare the stated current-state facts with the live files before editing and report any mismatch.
+The workspace is a Git repository. Release work is performed from a dedicated worktree and must report its branch and commit SHA. Executors must compare stated current-state facts with live files before editing and report any mismatch.
 
 ## Execution Order and Parallel Work
 
 | Plan | Title | Priority | Effort | Depends on | Status |
 | --- | --- | --- | --- | --- | --- |
-| 001 | Establish the verification baseline and application skeleton | P1 | M | none | TODO |
-| 002 | Define Instagram URL parsing and embed policy as pure domain modules | P1 | M | 001 | TODO |
-| 003 | Build Effect-backed metadata retrieval and cache services | P1 | L | 001, 002 | TODO |
-| 004 | Serve Discord-compatible HTML embeds and media routes | P1 | L | 001, 002, 003 | TODO |
-| 005 | Deploy the service with Alchemy and production-safe configuration | P1 | M | 001, 004 | TODO |
-| 006 | Harden end-to-end behavior, observability, and operator documentation | P2 | M | 002, 003, 004, 005 | TODO |
+| 001 | Establish the verification baseline and application skeleton | P1 | M | none | DONE |
+| 002 | Define Instagram URL parsing and embed policy as pure domain modules | P1 | M | 001 | DONE |
+| 003 | Build Effect-backed metadata retrieval and cache services | P1 | L | 001, 002 | DONE |
+| 004 | Serve Discord-compatible HTML embeds and media routes | P1 | L | 001, 002, 003 | DONE |
+| 005 | Deploy the service with Alchemy and production-safe configuration | P1 | M | 001, 004 | DONE |
+| 006 | Harden end-to-end behavior, observability, and operator documentation | P2 | M | 002, 003, 004, 005 | BLOCKED: auth |
 
 Plans 002 and the non-runtime portions of 003 can be developed by separate agents after 001. Plans 003 and 004 should not be merged independently until their typed contracts agree. Plan 005 can begin its Alchemy investigation after 001, but deployment wiring depends on the handler contract from 004. Plan 006 is the release gate.
 
@@ -68,3 +68,7 @@ Plans 002 and the non-runtime portions of 003 can be developed by separate agent
 - Whether media should be proxied through this service or referenced directly. Direct URLs are simpler; proxying improves stability but increases bandwidth and abuse risk.
 - The production hostname, Cloudflare account/resource names, cache limits, rate limits, and retention values.
 - Whether a database is needed in the first deployment. The initial plan assumes edge cache plus optional durable cache only if measurement justifies it.
+
+## Plan 006 Release Note
+
+The release gate uses deterministic local fixture Layers and a real Bun HTTP entrypoint. It verifies route families, direct media redirects, oEmbed, typed upstream failures, bounded timeout behavior, cache outage mapping, input and response bounds, exact media allowlists, local fixed-window rate limiting, safe correlation IDs, and telemetry redaction. No live provider, credential, Cloudflare resource mutation, Discord API, or Telegram behavior is verified by this release.

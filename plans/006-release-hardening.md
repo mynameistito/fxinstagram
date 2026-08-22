@@ -91,12 +91,17 @@ Run typecheck, all tests, Ultracite, local smoke, and deployment dry-run. Record
 
 ## Done criteria
 
-- [ ] `bun run typecheck`, `bun test`, and `bun run check` pass.
+- [x] `bun run typecheck`, `bun test`, and `bun run check` pass.
 - [ ] Local smoke and platform dry-run pass without production credentials.
-- [ ] Every public route has an end-to-end or explicit documented test disposition.
-- [ ] Unsafe host/proxy/input cases are rejected.
-- [ ] Logs and error responses contain safe summaries only.
-- [ ] README and plan index reflect the actual supported behavior and remaining decisions.
+- [x] Every public route has an end-to-end or explicit documented test disposition.
+- [x] Unsafe host/proxy/input cases are rejected.
+- [x] Logs and error responses contain safe summaries only.
+- [x] README and plan index reflect the actual supported behavior and remaining decisions.
+
+## Verification Record
+
+- Local smoke passed against the real Bun process with the documented local defaults; the empty fixture store returned the expected safe response and the process shut down cleanly.
+- `bun run alchemy:check` was attempted with stage `dev_fxinstagram` and profile `default`. It was blocked before planning by Alchemy's Cloudflare OAuth refresh (`AuthError: Cloudflare OAuth refresh failed; run alchemy login`). No Cloudflare resource was mutated. An authenticated operator owns this gate.
 
 ## STOP conditions
 

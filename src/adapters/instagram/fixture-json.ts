@@ -24,7 +24,7 @@ const parseMedia = (value: unknown): InstagramMedia | undefined => {
   }
   try {
     const url = new URL(value.url);
-    if (url.protocol !== "https:") {
+    if (url.protocol !== "https:" || url.toString().length > 2048) {
       return undefined;
     }
     return {
@@ -55,6 +55,9 @@ const parsePost = (
   try {
     canonicalUrl = new URL(value.canonicalUrl);
   } catch {
+    return undefined;
+  }
+  if (canonicalUrl.toString().length > 2048) {
     return undefined;
   }
   const media = value.media.map(parseMedia);

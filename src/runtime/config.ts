@@ -58,7 +58,11 @@ const parseHosts = (
   if (
     hosts.length === 0 ||
     hosts.some(
-      (host) => host === "" || host.includes("/") || host.includes(":")
+      (host) =>
+        host === "" ||
+        host.length > 253 ||
+        !/^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$/u.test(host) ||
+        host.includes("..")
     )
   ) {
     return Effect.fail(

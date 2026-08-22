@@ -10,8 +10,38 @@ import {
   errorDescription,
   statusForError,
 } from "./policy.ts";
+import { defaultRateLimit } from "./telemetry.ts";
+import type {
+  HttpOperation,
+  HttpTelemetry,
+  RateLimitConfig,
+} from "./telemetry.ts";
 
 const instagramOrigin = "https://instagram.com";
+const maxRequestUrlLength = 2048;
+const maxPathLength = 512;
+
+interface RouterOptions {
+  readonly httpTelemetry?: HttpTelemetry | undefined;
+  readonly rateLimit?: RateLimitConfig | undefined;
+}
+
+const requestId = (): string => crypto.randomUUID();
+
+const withRequestId = (response: Response, id: string): Response => {
+  response.headers.set("X-Request-ID", id);
+  return response;
+};
+
+const operationFor = (path: string): HttpOperation => {
+  if (path === "/oembed") {
+    return "oembed";
+  }
+  if (path.startsWith("/images/") || path.startsWith("/videos/")) {
+    return "media";
+  }
+  return "content";
+};
 
 const userAgent = (request: Request): string =>
   request.headers.get("user-agent") ?? "";
@@ -205,14 +235,103 @@ const handleContent = async (
   return responseFor(service, parsed.success);
 };
 
-export const makeRouter =
-  (service: EmbedService) =>
-  async (request: Request): Promise<Response> => {
-    const url = new URL(request.url);
-    const parts = url.pathname.split("/").filter(Boolean);
-    if (parts[0] === "oembed") {
-      return handleOembed(service, request, url);
+const recordTelemetry = async (
+  telemetry: HttpTelemetry | undefined,
+  id: string,
+  operation: HttpOperation,
+  outcome: "success" | "rejected" | "failure",
+  status: number,
+  started: number
+): Promise<void> => {
+  if (telemetry === undefined) {
+    return;
+  }
+  try {
+    await Effect.runPromise(
+      telemetry.record({
+        durationMs: Date.now() - started,
+        operation,
+        outcome,
+        requestId: id,
+        status,
+      })
+    );
+  } catch {
+    // Telemetry failure must not change the public request result.
+  }
+};
+
+export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
+  const rateLimitState = { requests: 0, startedAt: Date.now() };
+  return async (request: Request): Promise<Response> => {
+    const started = Date.now();
+    const id = requestId();
+    let url: URL;
+    try {
+      url = new URL(request.url);
+    } catch {
+      return new Response("invalid request", { status: 422 });
     }
-    const media = await handleMedia(service, request, parts);
-    return media ?? handleContent(service, request, url);
+    const limit = options?.rateLimit ?? defaultRateLimit;
+    const now = Date.now();
+    if (now - rateLimitState.startedAt >= limit.windowMs) {
+      rateLimitState.startedAt = now;
+      rateLimitState.requests = 0;
+    }
+    rateLimitState.requests += 1;
+    if (rateLimitState.requests > limit.maxRequests) {
+      const response = withRequestId(
+        new Response("rate limit exceeded", {
+          headers: { "Retry-After": String(Math.ceil(limit.windowMs / 1000)) },
+          status: 429,
+        }),
+        id
+      );
+      await recordTelemetry(
+        options?.httpTelemetry,
+        id,
+        operationFor(url.pathname),
+        "rejected",
+        response.status,
+        started
+      );
+      return response;
+    }
+    if (
+      request.url.length > maxRequestUrlLength ||
+      url.pathname.length > maxPathLength
+    ) {
+      const response = withRequestId(
+        new Response("request too large", { status: 422 }),
+        id
+      );
+      await recordTelemetry(
+        options?.httpTelemetry,
+        id,
+        operationFor(url.pathname),
+        "rejected",
+        response.status,
+        started
+      );
+      return response;
+    }
+    const parts = url.pathname.split("/").filter(Boolean);
+    let response: Response;
+    if (parts[0] === "oembed") {
+      response = await handleOembed(service, request, url);
+    } else {
+      const media = await handleMedia(service, request, parts);
+      response = media ?? (await handleContent(service, request, url));
+    }
+    const result = withRequestId(response, id);
+    await recordTelemetry(
+      options?.httpTelemetry,
+      id,
+      operationFor(url.pathname),
+      result.status >= 500 ? "failure" : "success",
+      result.status,
+      started
+    );
+    return result;
   };
+};

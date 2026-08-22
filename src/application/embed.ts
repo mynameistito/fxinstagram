@@ -68,11 +68,17 @@ const localUrl = (
   return url;
 };
 
-const isSafeMediaUrl = (url: URL, hosts: ReadonlySet<string>): boolean =>
-  url.protocol === "https:" &&
-  url.username === "" &&
-  url.password === "" &&
-  hosts.has(url.hostname.toLowerCase());
+const maxMediaUrlLength = 2048;
+
+const isSafeMediaUrl = (url: URL, hosts: ReadonlySet<string>): boolean => {
+  if (url.protocol !== "https:" || url.username !== "" || url.password !== "") {
+    return false;
+  }
+  return (
+    url.toString().length <= maxMediaUrlLength &&
+    hosts.has(url.hostname.toLowerCase())
+  );
+};
 
 const canonicalHosts = new Set(["instagram.com", "www.instagram.com"]);
 

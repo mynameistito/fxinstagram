@@ -47,5 +47,18 @@ describe("runtime configuration", () => {
       _tag: "Failure",
       failure: { field: "METADATA_TIMEOUT_MS", reason: "invalid" },
     });
+    expect(
+      Effect.runSync(
+        Effect.result(
+          parseAppConfig({
+            ...valid,
+            ALLOWED_MEDIA_HOSTS: "https://evil.example",
+          })
+        )
+      )
+    ).toMatchObject({
+      _tag: "Failure",
+      failure: { field: "ALLOWED_MEDIA_HOSTS", reason: "invalid" },
+    });
   });
 });

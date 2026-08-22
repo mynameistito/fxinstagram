@@ -25,12 +25,12 @@ Use Effect Schema for parsing untrusted strings at the boundary, but keep the re
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-|---|---|---|
-| Typecheck | `bun run typecheck` | exit 0 |
-| Domain tests | `bun test src/domain` | all pass |
-| Full tests | `bun test` | all pass |
-| Lint/format | `bun run check` | exit 0 |
+| Purpose      | Command               | Expected on success |
+| ------------ | --------------------- | ------------------- |
+| Typecheck    | `bun run typecheck`   | exit 0              |
+| Domain tests | `bun test src/domain` | all pass            |
+| Full tests   | `bun test`            | all pass            |
+| Lint/format  | `bun run check`       | exit 0              |
 
 ## Scope
 
@@ -102,7 +102,9 @@ Define the application-owned retrieval port needed by Plan 003:
 
 ```ts
 interface InstagramMetadataSource {
-  readonly find: (location: InstagramLocation) => Effect.Effect<InstagramPost, MetadataError>;
+  readonly find: (
+    location: InstagramLocation
+  ) => Effect.Effect<InstagramPost, MetadataError>;
 }
 ```
 

@@ -35,7 +35,7 @@ The service crosses untrusted URLs, an unstable upstream, HTML rendering, cachin
 ## Commands you will need
 
 | Purpose | Command | Expected on success |
-|---|---|---|
+| --- | --- | --- |
 | Typecheck | `bun run typecheck` | exit 0 |
 | Full tests | `bun test` | all pass |
 | Lint/format | `bun run check` | exit 0 |

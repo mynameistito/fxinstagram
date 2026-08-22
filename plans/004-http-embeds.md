@@ -23,12 +23,12 @@ Treat those as compatibility targets subject to explicit tests. Do not copy unsa
 
 ## Commands you will need
 
-| Purpose | Command | Expected on success |
-|---|---|---|
-| Typecheck | `bun run typecheck` | exit 0 |
-| HTTP tests | `bun test src/http` | all pass |
-| Full tests | `bun test` | all pass |
-| Lint/format | `bun run check` | exit 0 |
+| Purpose     | Command             | Expected on success |
+| ----------- | ------------------- | ------------------- |
+| Typecheck   | `bun run typecheck` | exit 0              |
+| HTTP tests  | `bun test src/http` | all pass            |
+| Full tests  | `bun test`          | all pass            |
+| Lint/format | `bun run check`     | exit 0              |
 
 ## Scope
 
@@ -53,7 +53,11 @@ Treat those as compatibility targets subject to explicit tests. Do not copy unsa
 ```ts
 type EmbedResponse =
   | { readonly _tag: "Redirect"; readonly location: URL }
-  | { readonly _tag: "Html"; readonly status: 200 | 404 | 422 | 429 | 503; readonly document: EmbedDocument }
+  | {
+      readonly _tag: "Html";
+      readonly status: 200 | 404 | 422 | 429 | 503;
+      readonly document: EmbedDocument;
+    }
   | { readonly _tag: "MediaRedirect"; readonly location: URL };
 
 type EmbedDocument = {

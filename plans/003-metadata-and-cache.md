@@ -24,7 +24,7 @@ The workspace contains no integration code. The reference `main.go` configures a
 ## Commands you will need
 
 | Purpose | Command | Expected on success |
-|---|---|---|
+| --- | --- | --- |
 | Typecheck | `bun run typecheck` | exit 0 |
 | Service tests | `bun test src/application src/adapters` | all pass |
 | Full tests | `bun test` | all pass |
@@ -62,17 +62,33 @@ type InstagramPost = {
 
 type MetadataError =
   | { readonly _tag: "MetadataNotFound"; readonly shortcode: string }
-  | { readonly _tag: "ProviderUnavailable"; readonly provider: string; readonly cause: unknown }
+  | {
+      readonly _tag: "ProviderUnavailable";
+      readonly provider: string;
+      readonly cause: unknown;
+    }
   | { readonly _tag: "ProviderResponseInvalid"; readonly provider: string }
-  | { readonly _tag: "ProviderRateLimited"; readonly provider: string; readonly retryAfterMs?: number };
+  | {
+      readonly _tag: "ProviderRateLimited";
+      readonly provider: string;
+      readonly retryAfterMs?: number;
+    };
 
 interface MetadataSource {
-  readonly find: (location: InstagramLocation) => Effect.Effect<InstagramPost, MetadataError>;
+  readonly find: (
+    location: InstagramLocation
+  ) => Effect.Effect<InstagramPost, MetadataError>;
 }
 
 interface MetadataCache {
-  readonly get: (key: MetadataCacheKey) => Effect.Effect<InstagramPost | undefined, CacheError>;
-  readonly put: (key: MetadataCacheKey, value: InstagramPost, ttl: Duration) => Effect.Effect<void, CacheError>;
+  readonly get: (
+    key: MetadataCacheKey
+  ) => Effect.Effect<InstagramPost | undefined, CacheError>;
+  readonly put: (
+    key: MetadataCacheKey,
+    value: InstagramPost,
+    ttl: Duration
+  ) => Effect.Effect<void, CacheError>;
 }
 ```
 

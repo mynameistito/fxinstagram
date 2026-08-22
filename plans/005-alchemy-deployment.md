@@ -26,7 +26,7 @@ Alchemy beta APIs and Effect RC APIs are version-sensitive. Read the installed p
 ## Commands you will need
 
 | Purpose | Command | Expected on success |
-|---|---|---|
+| --- | --- | --- |
 | Typecheck | `bun run typecheck` | exit 0 |
 | Local runtime | `bun run index.ts` | documented startup behavior |
 | Infrastructure preview | `bun run alchemy:check` or the repository's chosen dry-run command | no resource mutation |

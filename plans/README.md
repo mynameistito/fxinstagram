@@ -7,7 +7,7 @@ The workspace is not a Git repository, so no commit SHA is available for drift c
 ## Execution Order and Parallel Work
 
 | Plan | Title | Priority | Effort | Depends on | Status |
-|------|-------|----------|--------|------------|--------|
+| --- | --- | --- | --- | --- | --- |
 | 001 | Establish the verification baseline and application skeleton | P1 | M | none | TODO |
 | 002 | Define Instagram URL parsing and embed policy as pure domain modules | P1 | M | 001 | TODO |
 | 003 | Build Effect-backed metadata retrieval and cache services | P1 | L | 001, 002 | TODO |

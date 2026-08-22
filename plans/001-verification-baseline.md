@@ -30,7 +30,7 @@ Follow the local `Effect` service shape from `.agents/skills/effect-service-desi
 ## Commands you will need
 
 | Purpose | Command | Expected on success |
-|---|---|---|
+| --- | --- | --- |
 | Format/lint check | `bun run check` | exit 0 |
 | Typecheck | `bun run typecheck` | exit 0, no diagnostics |
 | Tests | `bun test` | exit 0 |

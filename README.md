@@ -61,13 +61,15 @@ bun run alchemy:check
 
 `alchemy.run.ts` is the deployment source of truth. The `prod` stage owns the `fxinstagram` Worker at `ig.mynameistito.com`; every `pr-<number>` stage gets an isolated `fxinstagram-pr-<number>` Worker and a `workers.dev` preview URL. `src/runtime/worker.ts` is only the runtime handler bundled by that resource. The Worker receives `PUBLIC_ORIGIN` from its deployed URL and the configured `ALLOWED_MEDIA_HOSTS`, `METADATA_CACHE_TTL_SECONDS`, `METADATA_TIMEOUT_MS`, and optional `METADATA_PROVIDER_TOKEN`. Provider secrets belong in the platform secret mechanism, never tracked files.
 
+The deployed Worker retrieves public Instagram pages without credentials and parses their Open Graph metadata. Responses must be HTML and are streamed with a 1 MiB limit; redirects are rejected. The production media allowlist defaults to `scontent.cdninstagram.com`. Local and deterministic test runtimes continue to use fixture JSON unless a metadata source is supplied explicitly.
+
 GitHub Actions requires repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. CI runs without credentials. After CI succeeds for the exact commit, same-repository pull requests deploy a preview and receive an updated URL comment; closing the PR destroys only its validated `pr-<number>` stage. A successful push to `main` deploys production. Fork pull requests run CI but never receive deployment credentials.
 
 For an operator-driven development deployment, select a Cloudflare profile with `--profile` or `ALCHEMY_PROFILE` and run `bun run alchemy:deploy`. Roll back production by redeploying a previously reviewed commit. `alchemy destroy` is destructive; the automated cleanup workflow refuses every stage that is not shaped like `pr-<number>`.
 
 ## Release Risks
 
-Live-provider behavior is intentionally unverified because this release has no live provider adapter. Upstream volatility, media bandwidth cost, provider quotas, distributed rate limiting, production cache limits, and retention remain operational decisions. Direct media redirects avoid proxy bandwidth but depend on the allowlisted upstream URL remaining available.
+Public Instagram HTML is undocumented and may change or be rate limited. It currently provides poster/image metadata but no stable direct reel video URL, so reel embeds render as image cards until [the playable-video provider decision](https://github.com/mynameistito/fxinstagram/issues/11) is implemented. Upstream volatility, media bandwidth cost, provider quotas, distributed rate limiting, production cache limits, and retention remain operational concerns. Shared cache and provider protection are tracked in [issue 12](https://github.com/mynameistito/fxinstagram/issues/12).
 
 ## Product Decisions
 

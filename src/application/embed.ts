@@ -235,8 +235,3 @@ export const makeEmbedService = (
       });
     return { resolve, resolveMedia };
   });
-
-export const instagramRedirect = (location: URL): EmbedResponse => ({
-  _tag: "Redirect",
-  location,
-});

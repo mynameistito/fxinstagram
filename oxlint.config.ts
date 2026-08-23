@@ -17,7 +17,7 @@ export default defineConfig({
             patterns: [
               {
                 message: "Use the @/* alias for imports between src modules.",
-                regex: "^\\.{1,2}/",
+                regex: "^\\.{1,2}/(?:\\.{1,2}/)?[^./]",
               },
             ],
           },

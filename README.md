@@ -75,4 +75,4 @@ Public Instagram HTML and its nested video payload are undocumented and may chan
 
 ## Product Decisions
 
-Open decisions and their current boundaries are tracked in [`plans/README.md`](plans/README.md). Telegram support, Discord/Telegram APIs, new acquisition providers, arbitrary proxying, and broad infrastructure refactors are not part of this release.
+Telegram support, Discord/Telegram APIs, new acquisition providers, arbitrary proxying, and broad infrastructure refactors are not part of this release.

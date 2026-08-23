@@ -318,7 +318,16 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
     }
     const wellKnown = wellKnownResponse(url.pathname);
     if (wellKnown !== undefined) {
-      return withRequestId(wellKnown, id);
+      const result = withRequestId(wellKnown, id);
+      await recordTelemetry(
+        options?.httpTelemetry,
+        id,
+        operationFor(url.pathname),
+        result.status >= 500 ? "failure" : "success",
+        result.status,
+        started
+      );
+      return result;
     }
     const parts = url.pathname.split("/").filter(Boolean);
     let response: Response;

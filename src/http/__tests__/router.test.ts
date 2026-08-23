@@ -1,6 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
+import { Effect } from "effect";
+
 import { startServer } from "../../runtime/server.ts";
+import type { HttpTelemetryEvent } from "../telemetry.ts";
 
 const fixture = {
   canonicalUrl: "https://instagram.com/p/ABC",
@@ -61,7 +64,14 @@ describe("real Bun HTTP router", () => {
   });
 
   test("serves security and Do Not Track well-known resources", async () => {
+    const events: HttpTelemetryEvent[] = [];
     const server = await startServer({
+      httpTelemetry: {
+        record: (event) =>
+          Effect.sync(() => {
+            events.push(event);
+          }),
+      },
       origin: new URL("https://ig.mynameistito.com"),
     });
     try {
@@ -81,6 +91,7 @@ describe("real Bun HTTP router", () => {
 
       const policy = await fetch(`${server.url}.well-known/dnt-policy.txt`);
       expect(policy.status).toBe(200);
+      expect(policy.headers.get("content-type")).toContain("text/plain");
       expect(await policy.text()).toBe(
         [
           "# Do Not Track Policy for mynameistito.com",
@@ -101,6 +112,29 @@ describe("real Bun HTTP router", () => {
       );
       expect(await dnt.text()).toBe(
         '{"policy": "/.well-known/dnt-policy.txt"}'
+      );
+      expect(events).toHaveLength(3);
+      expect(events).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({
+            operation: "content",
+            outcome: "success",
+            requestId: security.headers.get("x-request-id"),
+            status: 200,
+          }),
+          expect.objectContaining({
+            operation: "content",
+            outcome: "success",
+            requestId: policy.headers.get("x-request-id"),
+            status: 200,
+          }),
+          expect.objectContaining({
+            operation: "content",
+            outcome: "success",
+            requestId: dnt.headers.get("x-request-id"),
+            status: 200,
+          }),
+        ])
       );
     } finally {
       server.stop(true);

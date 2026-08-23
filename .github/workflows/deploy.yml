@@ -106,7 +106,7 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Create GitHub deployment
         id: create-deployment
-        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2e5e37e6f255589ade7edffeea77e646ba
+        uses: mynameistito/.github/.github/actions/deployment-report@dea81867fa63f1c6bd1f58211fb565dbbc9378b7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -135,7 +135,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       - name: Complete GitHub deployment
         if: always() && steps.create-deployment.outcome == 'success'
-        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2e5e37e6f255589ade7edffeea77e646ba
+        uses: mynameistito/.github/.github/actions/deployment-report@dea81867fa63f1c6bd1f58211fb565dbbc9378b7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -149,7 +149,7 @@ jobs:
           cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       - name: Comment deployment status on pull request
         if: always() && needs.resolve.outputs.preview == 'true' && steps.create-deployment.outcome == 'success'
-        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2e5e37e6f255589ade7edffeea77e646ba
+        uses: mynameistito/.github/.github/actions/deployment-report@dea81867fa63f1c6bd1f58211fb565dbbc9378b7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
@@ -201,7 +201,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
       - name: Delete GitHub preview deployments
-        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2e5e37e6f255589ade7edffeea77e646ba
+        uses: mynameistito/.github/.github/actions/deployment-report@dea81867fa63f1c6bd1f58211fb565dbbc9378b7
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:

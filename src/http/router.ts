@@ -4,7 +4,7 @@ import type { EmbedService } from "../application/embed.ts";
 import type { EmbedRequest } from "../domain/embed-request.ts";
 import { parseEmbedRequest } from "../domain/embed-request.ts";
 import { parseInstagramUrl } from "../domain/instagram-url.ts";
-import { htmlResponse } from "./html.ts";
+import { htmlResponse, indexResponse } from "./html.ts";
 import {
   classifyUserAgent,
   errorDescription,
@@ -331,7 +331,9 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
     }
     const parts = url.pathname.split("/").filter(Boolean);
     let response: Response;
-    if (parts[0] === "oembed") {
+    if (url.pathname === "/") {
+      response = indexResponse();
+    } else if (parts[0] === "oembed") {
       response = await handleOembed(service, request, url);
     } else {
       const media = await handleMedia(service, request, parts);

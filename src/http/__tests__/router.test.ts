@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { startServer } from "../../runtime/server.ts";
-import type { HttpTelemetryEvent } from "../telemetry.ts";
+import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
+import { startServer } from "@/runtime/server.ts";
 
 const fixture = {
   canonicalUrl: "https://instagram.com/p/ABC",
@@ -18,8 +18,8 @@ describe("real Bun HTTP router", () => {
   test("redirects humans before metadata lookup", async () => {
     const server = await startServer({
       fixtures: new Map(),
-      origin: new URL("http://127.0.0.1:18991"),
-      port: 18_991,
+      origin: new URL("http://127.0.0.1:0"),
+      port: 0,
     });
     try {
       const response = await fetch(`${server.url}p/ABC`, {
@@ -37,8 +37,8 @@ describe("real Bun HTTP router", () => {
   test("serves escaped bot metadata and approved media redirects", async () => {
     const server = await startServer({
       fixtures: new Map([["ABC", fixture]]),
-      origin: new URL("http://127.0.0.1:18992"),
-      port: 18_992,
+      origin: new URL("http://127.0.0.1:0"),
+      port: 0,
     });
     try {
       const page = await fetch(`${server.url}p/ABC`, {

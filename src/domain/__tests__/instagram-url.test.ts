@@ -3,7 +3,10 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { instagramLocationPath, parseInstagramUrl } from "../instagram-url.ts";
+import {
+  instagramLocationPath,
+  parseInstagramUrl,
+} from "@/domain/instagram-url.ts";
 
 const parse = (value: string) => Effect.runSync(parseInstagramUrl(value));
 

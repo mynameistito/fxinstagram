@@ -2,7 +2,7 @@ import type { Effect } from "effect/Effect";
 
 import type { InstagramLocation } from "@/domain/instagram-url.ts";
 
-/** Media normalized from any future Instagram metadata provider. */
+/** Media normalized from an Instagram metadata provider. */
 export type InstagramMedia =
   | {
       readonly type: "image";
@@ -57,7 +57,7 @@ export type MetadataError =
       readonly retryAfterMs?: number;
     };
 
-/** Application-owned retrieval port for Plan 003 adapters. */
+/** Application-owned retrieval port implemented by metadata adapters. */
 export interface InstagramMetadataSource {
   readonly find: (
     location: InstagramLocation

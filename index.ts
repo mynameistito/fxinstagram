@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
-import { startServer } from "@/runtime/bootstrap.ts";
 import { localEnvironment, parseAppConfig } from "@/runtime/config.ts";
+import { startServer } from "@/runtime/server.ts";
 
 const environment = localEnvironment();
 const config = await Effect.runPromise(parseAppConfig(environment));

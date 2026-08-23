@@ -146,12 +146,6 @@ export const makeEmbedService = (
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
         if (request.mode === "direct") {
-          if (
-            mediaUrl === undefined ||
-            !isSafeMediaUrl(mediaUrl, config.mediaHosts)
-          ) {
-            return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
-          }
           return {
             _tag: "MediaRedirect",
             location: localUrl(

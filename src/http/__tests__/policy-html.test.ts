@@ -1,7 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import { renderDocument } from "../html.ts";
+import type { EmbedService } from "../../application/embed.ts";
+import { renderDocument, renderIndexDocument } from "../html.ts";
 import { classifyUserAgent, statusForError } from "../policy.ts";
+import { makeRouter } from "../router.ts";
 
 // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("HTTP policies and projection", () => {
@@ -57,5 +59,23 @@ describe("HTTP policies and projection", () => {
     expect(html).toContain(
       'property="twitter:player:stream:content_type" content="video/mp4"'
     );
+  });
+
+  test("renders an accessible public index page with project links", () => {
+    const html = renderIndexDocument();
+    expect(html).toContain('<html lang="en">');
+    expect(html).toContain('href="https://buymeacoffee.com/mynameistito"');
+    expect(html).toContain(
+      'href="https://github.com/mynameistito/fxinstagram"'
+    );
+    expect(html).toContain('href="#main-content"');
+    expect(html).not.toContain("—");
+  });
+
+  test("routes the exact root path to the public index page", async () => {
+    const router = makeRouter({} as EmbedService);
+    const response = await router(new Request("https://example.com/"));
+    expect(response.status).toBe(200);
+    expect(await response.text()).toContain("How to use it");
   });
 });

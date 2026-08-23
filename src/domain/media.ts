@@ -1,6 +1,6 @@
 import type { Effect } from "effect/Effect";
 
-import type { InstagramLocation } from "./instagram-url.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
 
 /** Media normalized from any future Instagram metadata provider. */
 export type InstagramMedia =

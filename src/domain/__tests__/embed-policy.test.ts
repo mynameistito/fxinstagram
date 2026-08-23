@@ -3,10 +3,10 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { selectMedia } from "../embed-policy.ts";
-import { parseEmbedRequest } from "../embed-request.ts";
-import type { InstagramLocation } from "../instagram-url.ts";
-import type { InstagramMedia } from "../media.ts";
+import { selectMedia } from "@/domain/embed-policy.ts";
+import { parseEmbedRequest } from "@/domain/embed-request.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
+import type { InstagramMedia } from "@/domain/media.ts";
 
 const location: InstagramLocation = {
   kind: "post",

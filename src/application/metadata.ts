@@ -1,19 +1,19 @@
 // oxlint-disable promise/prefer-await-to-callbacks
 import { Context, Duration, Effect } from "effect";
 
-import type { InstagramLocation } from "../domain/instagram-url.ts";
+import { MetadataCacheService } from "@/application/cache.ts";
+import type { CacheError } from "@/application/cache.ts";
+import type { MetadataConfig } from "@/application/config.ts";
+import { MetadataConfigService } from "@/application/config.ts";
+import { metadataCacheKey } from "@/application/metadata-key.ts";
+import { MetadataSourceService } from "@/application/metadata-ports.ts";
+import { MetadataTelemetryService } from "@/application/telemetry.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
 import type {
   InstagramPost,
   MetadataError,
   InstagramMetadataSource,
-} from "../domain/media.ts";
-import { MetadataCacheService } from "./cache.ts";
-import type { CacheError } from "./cache.ts";
-import type { MetadataConfig } from "./config.ts";
-import { MetadataConfigService } from "./config.ts";
-import { metadataCacheKey } from "./metadata-key.ts";
-import { MetadataSourceService } from "./metadata-ports.ts";
-import { MetadataTelemetryService } from "./telemetry.ts";
+} from "@/domain/media.ts";
 
 /** A safe, provider-neutral metadata telemetry record. */
 export interface MetadataTelemetryEvent {

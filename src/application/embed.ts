@@ -1,10 +1,10 @@
 import { Effect } from "effect";
 
-import { selectMedia } from "../domain/embed-policy.ts";
-import type { EmbedRequest } from "../domain/embed-request.ts";
-import type { MediaSelection, MetadataError } from "../domain/media.ts";
-import type { CacheError } from "./cache.ts";
-import { MetadataServiceTag } from "./metadata.ts";
+import type { CacheError } from "@/application/cache.ts";
+import { MetadataServiceTag } from "@/application/metadata.ts";
+import { selectMedia } from "@/domain/embed-policy.ts";
+import type { EmbedRequest } from "@/domain/embed-request.ts";
+import type { MediaSelection, MetadataError } from "@/domain/media.ts";
 
 // oxlint-disable-next-line sonarjs/max-union-size -- This is the public projection contract.
 export type EmbedResponse =

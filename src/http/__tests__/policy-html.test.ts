@@ -73,6 +73,7 @@ describe("HTTP policies and projection", () => {
   });
 
   test("routes the exact root path to the public index page", async () => {
+    // SAFETY: The root route returns before any EmbedService method is accessed.
     const router = makeRouter({} as EmbedService);
     const response = await router(new Request("https://example.com/"));
     expect(response.status).toBe(200);

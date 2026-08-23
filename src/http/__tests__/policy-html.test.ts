@@ -85,6 +85,12 @@ describe("HTTP policies and projection", () => {
     expect(html).toContain("<style>");
     expect(html).toContain("background: #09090b");
     expect(html).toContain("FXInstagram");
+    expect(html).toContain("Server-rendered Instagram previews for Discord");
+    expect(html).toContain("Embeds images and videos");
+    expect(html).not.toContain("Telegram");
+    expect(html).not.toContain("likes and comments");
+    expect(html).not.toContain("verification status");
+    expect(html).not.toContain("Removes tracking");
     expect(html).toContain('href="https://buymeacoffee.com/mynameistito"');
     expect(html).toContain(
       'href="https://github.com/mynameistito/fxinstagram"'

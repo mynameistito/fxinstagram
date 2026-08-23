@@ -67,29 +67,26 @@ export const renderIndexDocument = (): string => `<!doctype html>
         main { padding: 3rem 3.5rem; }
         h1 { font-size: 4.5rem; }
       }
-    </style>
+      </style>
   </head>
   <body>
     <a class="skip-link" href="#main-content">Skip to content</a>
     <main id="main-content">
       <header>
         <h1>FXInstagram</h1>
-        <p class="intro">A better way to embed Instagram posts on Discord, Telegram, and more.</p>
+        <p class="intro">Server-rendered Instagram previews for Discord and other chat clients.</p>
       </header>
       <section aria-labelledby="features-title">
         <h2 id="features-title">Features <span aria-hidden="true">🌟</span></h2>
         <ul>
-          <li>Displays likes and comments count</li>
-          <li>Natively embeds images and videos</li>
-          <li>Removes tracking on redirects</li>
-          <li>Displays user verification status</li>
+          <li>Embeds images and videos</li>
         </ul>
       </section>
       <section aria-labelledby="usage-title">
         <h2 id="usage-title">Usage:</h2>
         <div class="copy">
           <p>Replace <code>https://instagram.com</code> with <code>https://ig.mynameistito.com</code> and keep the path.</p>
-          <p>FXInstagram is a free project that provides a better way to embed Instagram posts on Discord, Telegram, and more.</p>
+          <p>FXInstagram is a free project that provides server-rendered previews for Discord and other chat clients.</p>
           <p>Built by the community. You can support the project at <a href="https://buymeacoffee.com/mynameistito">Buy Me a Coffee</a>.</p>
         </div>
       </section>

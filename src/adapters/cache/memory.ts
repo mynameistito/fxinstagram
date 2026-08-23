@@ -1,9 +1,9 @@
 import { Clock, Duration, Effect, Layer } from "effect";
 
-import { MetadataCacheService } from "../../application/cache.ts";
-import type { CacheError } from "../../application/cache.ts";
-import type { MetadataConfig } from "../../application/config.ts";
-import type { InstagramPost } from "../../domain/media.ts";
+import { MetadataCacheService } from "@/application/cache.ts";
+import type { CacheError } from "@/application/cache.ts";
+import type { MetadataConfig } from "@/application/config.ts";
+import type { InstagramPost } from "@/domain/media.ts";
 
 interface Entry {
   readonly value: InstagramPost;

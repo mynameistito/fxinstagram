@@ -1,19 +1,19 @@
 import { Effect, Layer } from "effect";
 
-import { layerMemory } from "../adapters/cache/memory.ts";
-import { layerFixtureJson } from "../adapters/instagram/fixture-json.ts";
-import { MetadataCacheService } from "../application/cache.ts";
-import type { MetadataCache } from "../application/cache.ts";
-import { MetadataConfigService } from "../application/config.ts";
-import type { MetadataConfig } from "../application/config.ts";
-import { MetadataSourceService } from "../application/metadata-ports.ts";
+import { layerMemory } from "@/adapters/cache/memory.ts";
+import { layerFixtureJson } from "@/adapters/instagram/fixture-json.ts";
+import { MetadataCacheService } from "@/application/cache.ts";
+import type { MetadataCache } from "@/application/cache.ts";
+import { MetadataConfigService } from "@/application/config.ts";
+import type { MetadataConfig } from "@/application/config.ts";
+import { MetadataSourceService } from "@/application/metadata-ports.ts";
 import {
   makeMetadataService,
   MetadataServiceTag,
-} from "../application/metadata.ts";
-import type { MetadataTelemetry } from "../application/metadata.ts";
-import { MetadataTelemetryService } from "../application/telemetry.ts";
-import type { InstagramMetadataSource } from "../domain/media.ts";
+} from "@/application/metadata.ts";
+import type { MetadataTelemetry } from "@/application/metadata.ts";
+import { MetadataTelemetryService } from "@/application/telemetry.ts";
+import type { InstagramMetadataSource } from "@/domain/media.ts";
 
 export interface MetadataLayerOverrides {
   readonly cache?: MetadataCache | undefined;

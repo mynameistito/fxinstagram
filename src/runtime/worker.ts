@@ -1,11 +1,11 @@
 import { Effect } from "effect";
 
-import { makePublicInstagramSource } from "../adapters/instagram/public-html-source.ts";
-import { makeEmbedService } from "../application/embed.ts";
-import type { EmbedServiceConfig } from "../application/embed.ts";
-import { makeRouter } from "../http/router.ts";
-import { parseAppConfig } from "./config.ts";
-import { metadataLayer } from "./metadata.ts";
+import { makePublicInstagramSource } from "@/adapters/instagram/public-html-source.ts";
+import { makeEmbedService } from "@/application/embed.ts";
+import type { EmbedServiceConfig } from "@/application/embed.ts";
+import { makeRouter } from "@/http/router.ts";
+import { parseAppConfig } from "@/runtime/config.ts";
+import { metadataLayer } from "@/runtime/metadata.ts";
 
 export interface WorkerEnv {
   readonly [key: string]: string | undefined;

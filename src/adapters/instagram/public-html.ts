@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
-import type { InstagramLocation } from "../../domain/instagram-url.ts";
-import type { InstagramPost, MetadataError } from "../../domain/media.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
+import type { InstagramPost, MetadataError } from "@/domain/media.ts";
 
 const provider = "instagram-public-html";
 const metaTag = /<meta\s+[^>]*>/giu;

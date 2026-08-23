@@ -1,6 +1,6 @@
 import { Context } from "effect";
 
-import type { MetadataTelemetry } from "./metadata.ts";
+import type { MetadataTelemetry } from "@/application/metadata.ts";
 
 /** Effect service for sanitized metadata telemetry. */
 export class MetadataTelemetryService extends Context.Service<

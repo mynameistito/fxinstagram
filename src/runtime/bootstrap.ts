@@ -1,6 +1,6 @@
 import { Effect, Layer } from "effect";
 
-export { startServer } from "./server.ts";
+export { startServer } from "@/runtime/server.ts";
 
 /** The observable result returned by the baseline application bootstrap. */
 export interface BootstrapResult {

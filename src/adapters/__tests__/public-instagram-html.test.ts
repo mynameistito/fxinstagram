@@ -15,7 +15,7 @@ const location = Effect.runSync(
 
 describe("public Instagram HTML parser", () => {
   test("normalizes public Open Graph metadata", () => {
-    const html = `<!doctype html><meta content="summary_large_image" name="twitter:card"><meta property="og:title" content="&#064;alice on Instagram"><meta content="A &amp; B" property="og:description"><meta property="og:image" content="https://scontent.cdninstagram.com/image.jpg?a=1&amp;b=2"><meta property="og:url" content="https://www.instagram.com/alice/reel/ABC/">`;
+    const html = `<!doctype html><meta content="summary_large_image" name="twitter:card"><meta property="og:title" content="&#064;alice on Instagram"><meta content="A &amp; B" property="og:description"><meta property="og:image" content="https://scontent.fakl1-4.fna.fbcdn.net/image.jpg?a=1&amp;b=2"><meta property="og:url" content="https://www.instagram.com/alice/reel/ABC/">`;
     const post = Effect.runSync(parsePublicInstagramHtml(html, location));
     expect(post).toEqual({
       canonicalUrl: new URL("https://www.instagram.com/alice/reel/ABC/"),
@@ -46,6 +46,21 @@ describe("public Instagram HTML parser", () => {
         _tag: "ProviderResponseInvalid",
         provider: "instagram-public-html",
       },
+    });
+  });
+
+  test("rejects image URLs outside Instagram's CDN", async () => {
+    const result = await Effect.runPromise(
+      Effect.result(
+        parsePublicInstagramHtml(
+          '<meta property="og:title" content="@alice"><meta property="og:image" content="https://example.com/image.jpg"><meta property="og:url" content="https://instagram.com/reel/ABC/">',
+          location
+        )
+      )
+    );
+    expect(result).toMatchObject({
+      _tag: "Failure",
+      failure: { _tag: "ProviderResponseInvalid" },
     });
   });
 

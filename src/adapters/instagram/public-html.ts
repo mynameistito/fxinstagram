@@ -9,6 +9,8 @@ const attribute =
   /(?<name>[:\w-]+)\s*=\s*(?<quote>["'])(?<value>.*?)\k<quote>/giu;
 const escapedVideoUrl = /\\"video_url\\":\\"(?<value>(?:\\\\.|[^"\\])*)\\"/u;
 const plainVideoUrl = /"video_url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
+const mediaHostSuffixes = [".cdninstagram.com", ".fbcdn.net"] as const;
+const normalizedMediaHost = "scontent.cdninstagram.com";
 
 const decodeHtml = (value: string): string =>
   value
@@ -54,6 +56,20 @@ const safeUrl = (value: string | undefined): URL | undefined => {
   }
 };
 
+const normalizeMediaUrl = (url: URL): URL | undefined => {
+  const hostname = url.hostname.toLowerCase();
+  if (
+    hostname !== "cdninstagram.com" &&
+    hostname !== "fbcdn.net" &&
+    !mediaHostSuffixes.some((suffix) => hostname.endsWith(suffix))
+  ) {
+    return undefined;
+  }
+  const normalized = new URL(url);
+  normalized.hostname = normalizedMediaHost;
+  return normalized;
+};
+
 const decodeNestedJsonString = (value: string): string | undefined => {
   let decoded = value;
   for (let depth = 0; depth < 2 && decoded.includes("\\"); depth += 1) {
@@ -88,9 +104,11 @@ export const parsePublicInstagramHtml = (
 ): Effect.Effect<InstagramPost, MetadataError> => {
   const values = metadata(html);
   const canonicalUrl = safeUrl(values.get("og:url"));
-  const imageUrl = safeUrl(
+  const rawImageUrl = safeUrl(
     values.get("og:image") ?? values.get("twitter:image")
   );
+  const imageUrl =
+    rawImageUrl === undefined ? undefined : normalizeMediaUrl(rawImageUrl);
   if (canonicalUrl === undefined || imageUrl === undefined) {
     return Effect.fail({ _tag: "ProviderResponseInvalid", provider });
   }
@@ -111,10 +129,9 @@ export const parsePublicInstagramVideo = (html: string): URL | undefined => {
   if (value === undefined) {
     return undefined;
   }
-  const url = safeUrl(decodeNestedJsonString(value));
-  if (url === undefined) {
+  const rawUrl = safeUrl(decodeNestedJsonString(value));
+  if (rawUrl === undefined) {
     return undefined;
   }
-  url.hostname = "scontent.cdninstagram.com";
-  return url;
+  return normalizeMediaUrl(rawUrl);
 };

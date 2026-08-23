@@ -38,40 +38,69 @@ export const renderIndexDocument = (): string => `<!doctype html>
     <meta name="theme-color" content="#09090b">
     <title>FX Instagram | Better link previews</title>
     ${namedMeta("description", "FX Instagram turns supported Instagram URLs into useful previews for Discord and other chat clients.")}
-    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+    <style>
+      :root { color-scheme: dark; font-family: system-ui, sans-serif; }
+      * { box-sizing: border-box; }
+      body { margin: 0; min-height: 100dvh; background: #09090b; color: #f4f4f5; -webkit-font-smoothing: antialiased; }
+      .skip-link { position: absolute; left: -9999px; top: 1rem; background: #bef264; color: #09090b; padding: .5rem 1rem; font-weight: 600; }
+      .skip-link:focus { left: 1rem; z-index: 1; }
+      main { max-width: 64rem; margin: 0; padding: 2rem 1.75rem; }
+      h1 { margin: 0; color: #fff; font-size: 3rem; font-weight: 900; letter-spacing: -.07em; line-height: 1; }
+      h2 { margin: 0; color: #fff; font-size: 1.5rem; font-weight: 700; letter-spacing: -.025em; }
+      .intro { margin: 1.25rem 0 0; color: #f4f4f5; font-size: 1.125rem; font-weight: 700; line-height: 1.75rem; }
+      section { margin-top: 1.75rem; }
+      ul { margin: .75rem 0 0; padding-left: 1.75rem; color: #d4d4d8; font-size: 1rem; line-height: 1.5rem; }
+      li + li { margin-top: .125rem; }
+      .copy { margin-top: .75rem; color: #d4d4d8; font-size: 1rem; line-height: 1.5rem; }
+      .copy p { margin: .125rem 0; }
+      code { color: #f4f4f5; font-family: ui-monospace, monospace; font-size: .875rem; }
+      a { color: #bef264; text-decoration: underline; text-decoration-color: rgb(190 242 100 / 50%); text-underline-offset: 2px; }
+      a:hover { color: #d9f99d; }
+      a:focus-visible { outline: 2px solid #bef264; outline-offset: 2px; }
+      footer { margin-top: 2rem; border-top: 1px solid #27272a; padding-top: 1rem; color: #a1a1aa; font-size: .875rem; line-height: 1.5rem; }
+      @media (min-width: 640px) {
+        main { padding: 2.5rem 2.5rem; }
+        h1 { font-size: 3.75rem; }
+        .intro { font-size: 1.25rem; }
+      }
+      @media (min-width: 1024px) {
+        main { padding: 3rem 3.5rem; }
+        h1 { font-size: 4.5rem; }
+      }
+    </style>
   </head>
-  <body class="min-h-[100dvh] bg-zinc-950 font-sans text-zinc-100 antialiased selection:bg-lime-300 selection:text-zinc-950">
-    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-lime-300 focus:px-4 focus:py-2 focus:font-semibold focus:text-zinc-950" href="#main-content">Skip to content</a>
-    <main id="main-content" class="mx-0 max-w-5xl px-7 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
+  <body>
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <main id="main-content">
       <header>
-        <h1 class="text-5xl font-black tracking-[-0.07em] text-white sm:text-6xl lg:text-7xl">FXInstagram</h1>
-        <p class="mt-5 text-lg font-bold leading-7 text-zinc-100 sm:text-xl">A better way to embed Instagram posts on Discord, Telegram, and more.</p>
+        <h1>FXInstagram</h1>
+        <p class="intro">A better way to embed Instagram posts on Discord, Telegram, and more.</p>
       </header>
-      <section class="mt-7" aria-labelledby="features-title">
-        <h2 id="features-title" class="text-2xl font-bold tracking-tight text-white">Features <span aria-hidden="true">🌟</span></h2>
-        <ul class="mt-3 list-disc space-y-0.5 pl-7 text-base leading-6 text-zinc-300">
+      <section aria-labelledby="features-title">
+        <h2 id="features-title">Features <span aria-hidden="true">🌟</span></h2>
+        <ul>
           <li>Displays likes and comments count</li>
           <li>Natively embeds images and videos</li>
           <li>Removes tracking on redirects</li>
           <li>Displays user verification status</li>
         </ul>
       </section>
-      <section class="mt-7" aria-labelledby="usage-title">
-        <h2 id="usage-title" class="text-2xl font-bold tracking-tight text-white">Usage:</h2>
-        <div class="mt-3 space-y-0.5 text-base leading-6 text-zinc-300">
-          <p>Replace <code class="font-mono text-sm text-zinc-100">https://instagram.com</code> with <code class="font-mono text-sm text-lime-300">https://ig.mynameistito.com</code> and keep the path.</p>
+      <section aria-labelledby="usage-title">
+        <h2 id="usage-title">Usage:</h2>
+        <div class="copy">
+          <p>Replace <code>https://instagram.com</code> with <code>https://ig.mynameistito.com</code> and keep the path.</p>
           <p>FXInstagram is a free project that provides a better way to embed Instagram posts on Discord, Telegram, and more.</p>
-          <p>Built by the community. You can support the project at <a class="text-lime-300 underline decoration-lime-300/50 underline-offset-2 hover:text-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Buy Me a Coffee</a>.</p>
+          <p>Built by the community. You can support the project at <a href="https://buymeacoffee.com/mynameistito">Buy Me a Coffee</a>.</p>
         </div>
       </section>
-      <section class="mt-7" aria-labelledby="links-title">
-        <h2 id="links-title" class="text-2xl font-bold tracking-tight text-white">Learn more:</h2>
-        <ul class="mt-3 list-disc space-y-0.5 pl-7 text-base leading-6 text-zinc-300">
-          <li><a class="text-lime-300 underline decoration-lime-300/50 underline-offset-2 hover:text-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram">Source code</a></li>
-          <li><a class="text-lime-300 underline decoration-lime-300/50 underline-offset-2 hover:text-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram/blob/main/README.md">Documentation</a></li>
+      <section aria-labelledby="links-title">
+        <h2 id="links-title">Learn more:</h2>
+        <ul>
+          <li><a href="https://github.com/mynameistito/fxinstagram">Source code</a></li>
+          <li><a href="https://github.com/mynameistito/fxinstagram/blob/main/README.md">Documentation</a></li>
         </ul>
       </section>
-      <footer class="mt-8 border-t border-zinc-800 pt-4 text-sm leading-6 text-zinc-400">
+      <footer>
         <p>This is a community-built open-source project. It is not endorsed by, sponsored by, or affiliated with Meta or its subsidiaries, including Instagram.</p>
       </footer>
     </main>
@@ -151,7 +180,7 @@ export const indexResponse = (): Response =>
     headers: {
       "Cache-Control": "public, max-age=300",
       "Content-Security-Policy":
-        "default-src 'none'; script-src https://cdn.tailwindcss.com; style-src 'unsafe-inline'; base-uri 'none'",
+        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'",
       "Content-Type": "text/html; charset=utf-8",
       "X-Content-Type-Options": "nosniff",
     },

@@ -30,173 +30,69 @@ const meta = (name: string, content: string): string =>
 const namedMeta = (name: string, content: string): string =>
   `<meta name="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
 
-const indexStyles = `
-  :root {
-    color-scheme: light;
-    --ink: #17201f;
-    --muted: #53615e;
-    --line: #d8e1de;
-    --paper: #f7faf8;
-    --surface: #ffffff;
-    --accent: #007f72;
-    --accent-dark: #005d54;
-    --max-width: 1100px;
-  }
-  * { box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    margin: 0;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-    line-height: 1.6;
-  }
-  a { color: var(--accent-dark); }
-  a:focus-visible, .button:focus-visible {
-    outline: 3px solid var(--accent);
-    outline-offset: 4px;
-  }
-  .skip-link {
-    position: absolute;
-    left: 1rem;
-    top: -5rem;
-    z-index: 2;
-    padding: .65rem .9rem;
-    border-radius: .5rem;
-    background: var(--ink);
-    color: #fff;
-  }
-  .skip-link:focus { top: 1rem; }
-  .shell { width: min(calc(100% - 2rem), var(--max-width)); margin: 0 auto; }
-  header { border-bottom: 1px solid var(--line); background: var(--surface); }
-  .nav { display: flex; align-items: center; justify-content: space-between; min-height: 4.5rem; gap: 1rem; }
-  .brand { color: var(--ink); font-size: 1.05rem; font-weight: 750; letter-spacing: -.02em; text-decoration: none; }
-  nav { display: flex; gap: 1.2rem; font-size: .92rem; }
-  nav a { color: var(--muted); text-decoration: none; }
-  nav a:hover { color: var(--accent-dark); text-decoration: underline; text-underline-offset: .2em; }
-  main { overflow: hidden; }
-  .hero { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(15rem, .75fr); gap: clamp(2rem, 7vw, 6rem); align-items: end; padding: clamp(4rem, 10vw, 8rem) 0 clamp(4.5rem, 10vw, 8rem); }
-  .eyebrow { margin: 0 0 1rem; color: var(--accent-dark); font-size: .78rem; font-weight: 750; letter-spacing: .12em; text-transform: uppercase; }
-  h1, h2, p { margin-top: 0; }
-  h1 { max-width: 10ch; margin-bottom: 1.5rem; font-size: clamp(3.2rem, 8vw, 6.7rem); letter-spacing: -.075em; line-height: .95; }
-  .lede { max-width: 38rem; margin-bottom: 2rem; color: var(--muted); font-size: clamp(1.08rem, 2vw, 1.32rem); line-height: 1.55; }
-  .actions { display: flex; flex-wrap: wrap; gap: .8rem; align-items: center; }
-  .button { display: inline-flex; align-items: center; justify-content: center; min-height: 2.8rem; padding: .65rem 1rem; border: 1px solid var(--accent-dark); border-radius: .5rem; font-weight: 700; text-decoration: none; }
-  .button.primary { background: var(--accent-dark); color: #fff; }
-  .button.primary:hover { background: #004b44; }
-  .button.secondary { background: var(--surface); color: var(--accent-dark); }
-  .button.secondary:hover { background: #edf5f2; }
-  .hero-note { padding: 1.4rem 0 0 1.4rem; border-left: 3px solid var(--accent); color: var(--muted); }
-  .hero-note strong { display: block; margin-bottom: .45rem; color: var(--ink); font-size: 1.05rem; }
-  .section { padding: clamp(3.8rem, 8vw, 6.5rem) 0; border-top: 1px solid var(--line); }
-  .section-heading { max-width: 35rem; margin-bottom: 2.8rem; }
-  h2 { margin-bottom: .7rem; font-size: clamp(2rem, 4vw, 3.2rem); letter-spacing: -.05em; line-height: 1.05; }
-  .section-heading p, .step p { color: var(--muted); }
-  .steps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; }
-  .step { padding-top: 1rem; border-top: 2px solid var(--ink); }
-  .step-number { display: block; margin-bottom: 1rem; color: var(--accent-dark); font-size: .82rem; font-weight: 750; letter-spacing: .1em; }
-  .step h3 { margin-bottom: .55rem; font-size: 1.15rem; }
-  .example { display: inline-block; margin-top: .35rem; padding: .6rem .75rem; border: 1px solid var(--line); border-radius: .5rem; background: var(--surface); color: var(--ink); font: .88rem/1.4 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; overflow-wrap: anywhere; }
-  .split { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem, 8vw, 7rem); align-items: start; }
-  .split p { color: var(--muted); }
-  footer { padding: 2rem 0 3rem; border-top: 1px solid var(--line); color: var(--muted); font-size: .92rem; }
-  footer .footer-row { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; }
-  @media (max-width: 700px) {
-    .nav { align-items: flex-start; flex-direction: column; justify-content: center; padding: .9rem 0; }
-    nav { gap: .9rem; }
-    .hero, .split { grid-template-columns: 1fr; }
-    .hero { padding-top: 4.5rem; }
-    h1 { max-width: 8ch; }
-    .hero-note { max-width: 32rem; }
-    .steps { grid-template-columns: 1fr; gap: 2.4rem; }
-  }
-  @media (prefers-reduced-motion: reduce) {
-    html { scroll-behavior: auto; }
-  }
-`;
-
 export const renderIndexDocument = (): string => `<!doctype html>
 <html lang="en">
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>fxinstagram | Better Instagram previews</title>
-    ${namedMeta("description", "A small URL rewriting service that gives Instagram links useful previews in Discord and other clients.")}
-    <style>${indexStyles}</style>
+    <meta name="theme-color" content="#09090b">
+    <title>FX Instagram | Better link previews</title>
+    ${namedMeta("description", "FX Instagram turns supported Instagram URLs into useful previews for Discord and other chat clients.")}
+    <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   </head>
-  <body>
-    <a class="skip-link" href="#main-content">Skip to content</a>
-    <header>
-      <div class="shell nav">
-        <a class="brand" href="/" aria-label="fxinstagram home">fxinstagram</a>
-        <nav aria-label="Primary navigation">
-          <a href="#how-it-works">How it works</a>
-          <a href="https://github.com/mynameistito/fxinstagram">Source code</a>
+  <body class="min-h-[100dvh] bg-zinc-950 font-sans text-zinc-100 antialiased selection:bg-lime-300 selection:text-zinc-950">
+    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-lime-300 focus:px-4 focus:py-2 focus:font-semibold focus:text-zinc-950" href="#main-content">Skip to content</a>
+    <div class="mx-auto flex min-h-[100dvh] max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
+      <header class="flex items-center justify-between border-b border-zinc-800 pb-4">
+        <a class="font-mono text-sm font-bold tracking-tight text-white" href="/" aria-label="FX Instagram home"><span class="text-lime-300">./</span>fxinstagram</a>
+        <nav class="flex items-center gap-4 text-xs font-medium text-zinc-400" aria-label="Primary navigation">
+          <a class="transition-colors hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram">Source</a>
+          <a class="rounded-full border border-zinc-700 px-3 py-1.5 text-zinc-200 transition-colors hover:border-lime-300 hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Support</a>
         </nav>
-      </div>
-    </header>
-    <main id="main-content">
-      <section class="shell hero" aria-labelledby="hero-title">
-        <div>
-          <p class="eyebrow">Open source URL rewriting</p>
-          <h1 id="hero-title">Instagram links, properly previewed.</h1>
-          <p class="lede">fxinstagram turns supported Instagram URLs into server-rendered metadata that chat apps can understand.</p>
-          <div class="actions">
-            <a class="button primary" href="#how-it-works">See how to use it</a>
-            <a class="button secondary" href="https://buymeacoffee.com/mynameistito">Buy me a coffee</a>
-          </div>
+      </header>
+      <main id="main-content" class="flex flex-1 items-center py-8 lg:py-10">
+        <div class="grid w-full gap-8 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:gap-14">
+          <section aria-labelledby="hero-title">
+            <p class="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-lime-300">Open source link utility</p>
+            <h1 id="hero-title" class="max-w-3xl text-5xl font-black tracking-[-0.07em] text-white sm:text-7xl lg:text-[5.75rem] lg:leading-[0.9]">Better previews for Instagram links.</h1>
+            <p class="mt-5 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">FX Instagram turns supported Instagram URLs into server-rendered metadata that Discord and other chat clients can understand.</p>
+            <div class="mt-7 flex flex-wrap gap-3">
+              <a class="rounded-lg bg-lime-300 px-4 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram">View source code</a>
+              <a class="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-lime-300 hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Buy me a coffee</a>
+            </div>
+          </section>
+          <section class="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 shadow-2xl shadow-black/20" aria-labelledby="usage-title">
+            <div class="mb-5 flex items-center justify-between">
+              <h2 id="usage-title" class="text-sm font-bold text-white">How to use it</h2>
+              <span class="rounded-full bg-lime-300/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-lime-300">3 steps</span>
+            </div>
+            <ol class="space-y-4">
+              <li class="flex gap-3">
+                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">1</span>
+                <div><h3 class="text-sm font-semibold text-zinc-100">Copy an Instagram URL</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Posts, reels, IGTV, user-scoped posts, and stories are supported.</p></div>
+              </li>
+              <li class="flex gap-3">
+                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">2</span>
+                <div><h3 class="text-sm font-semibold text-zinc-100">Replace the hostname</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Keep the path and query string. Change only the hostname.</p></div>
+              </li>
+              <li class="flex gap-3">
+                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">3</span>
+                <div><h3 class="text-sm font-semibold text-zinc-100">Share the result</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Chat clients can now build a richer preview.</p></div>
+              </li>
+            </ol>
+            <div class="mt-5 rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs leading-6">
+              <div class="text-zinc-600"># replace only the host</div>
+              <div><span class="text-zinc-500">instagram.com</span><span class="px-2 text-zinc-700">→</span><span class="text-lime-300">ig.mynameistito.com</span><span class="text-zinc-400">/p/ABC</span></div>
+            </div>
+          </section>
         </div>
-        <aside class="hero-note" aria-label="Service summary">
-          <strong>Made for the moment a link is shared.</strong>
-          <span>Paste a supported Instagram URL into Discord or another client. Crawlers get useful metadata, while people continue to Instagram.</span>
-        </aside>
-      </section>
-      <section class="section" id="how-it-works" aria-labelledby="how-title">
-        <div class="shell">
-          <div class="section-heading">
-            <p class="eyebrow">How to use it</p>
-            <h2 id="how-title">One small change to the link.</h2>
-            <p>Use the fxinstagram hostname with the Instagram path you want to share.</p>
-          </div>
-          <div class="steps">
-            <article class="step">
-              <span class="step-number">01</span>
-              <h3>Copy an Instagram URL</h3>
-              <p>Posts, reels, IGTV, user-scoped posts, and stories are supported.</p>
-            </article>
-            <article class="step">
-              <span class="step-number">02</span>
-              <h3>Swap the hostname</h3>
-              <p>Keep the path and query string. Replace only the Instagram hostname with this service.</p>
-              <code class="example">ig.mynameistito.com/p/ABC</code>
-            </article>
-            <article class="step">
-              <span class="step-number">03</span>
-              <h3>Share the result</h3>
-              <p>The receiving client can read the metadata and build a richer preview.</p>
-            </article>
-          </div>
-        </div>
-      </section>
-      <section class="section" aria-labelledby="principles-title">
-        <div class="shell split">
-          <div class="section-heading">
-            <p class="eyebrow">A focused service</p>
-            <h2 id="principles-title">Useful previews, minimal machinery.</h2>
-          </div>
-          <div>
-            <p>fxinstagram is not a Discord bot and is not affiliated with Instagram or Meta. It rewrites links and serves metadata for public Instagram content.</p>
-            <p>Read the implementation, review the supported routes, or suggest an improvement in the <a href="https://github.com/mynameistito/fxinstagram">source repository</a>.</p>
-          </div>
-        </div>
-      </section>
-    </main>
-    <footer>
-      <div class="shell footer-row">
-        <span>fxinstagram is open source and independently maintained.</span>
-        <a href="https://buymeacoffee.com/mynameistito">Support the project</a>
-      </div>
-    </footer>
+      </main>
+      <footer class="grid gap-4 border-t border-zinc-800 pt-4 text-xs text-zinc-500 sm:grid-cols-3">
+        <div><span class="font-semibold text-zinc-300">What it does</span><p class="mt-1">Useful previews, minimal machinery.</p></div>
+        <div><span class="font-semibold text-zinc-300">Independent project</span><p class="mt-1">Not endorsed by Meta or Instagram.</p></div>
+        <div class="sm:text-right"><span class="font-semibold text-zinc-300">Built in the open</span><p class="mt-1"><a class="text-lime-300 hover:text-lime-200" href="https://github.com/mynameistito/fxinstagram">github.com/mynameistito/fxinstagram</a></p></div>
+      </footer>
+    </div>
   </body>
 </html>`;
 
@@ -257,7 +153,7 @@ export const indexResponse = (): Response =>
     headers: {
       "Cache-Control": "public, max-age=300",
       "Content-Security-Policy":
-        "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'",
+        "default-src 'none'; script-src https://cdn.tailwindcss.com; style-src 'unsafe-inline'; base-uri 'none'",
       "Content-Type": "text/html; charset=utf-8",
       "X-Content-Type-Options": "nosniff",
     },

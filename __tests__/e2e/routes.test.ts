@@ -3,7 +3,8 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import type { HttpTelemetryEvent } from "../../src/http/telemetry.ts";
+import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
+
 import { withTestServer } from "../test-server.ts";
 
 const fixtures = new Map<string, unknown>([

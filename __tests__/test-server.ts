@@ -1,5 +1,5 @@
-import { startServer } from "../src/runtime/server.ts";
-import type { ServerOptions } from "../src/runtime/server.ts";
+import { startServer } from "@/runtime/server.ts";
+import type { ServerOptions } from "@/runtime/server.ts";
 
 type TestServer = Awaited<ReturnType<typeof startServer>>;
 

@@ -58,6 +58,7 @@ export const startServer = async (options: ServerOptions = {}) => {
     fetch: makeRouter(service, {
       httpTelemetry: options.httpTelemetry,
       rateLimit: options.rateLimit,
+      wellKnownOrigin: origin,
     }),
     port: options.port ?? 0,
   };

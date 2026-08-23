@@ -59,4 +59,34 @@ describe("real Bun HTTP router", () => {
       server.stop(true);
     }
   });
+
+  test("serves security and Do Not Track well-known resources", async () => {
+    const server = await startServer({
+      origin: new URL("https://ig.mynameistito.com"),
+    });
+    try {
+      const security = await fetch(`${server.url}.well-known/security.txt`);
+      expect(security.status).toBe(200);
+      expect(security.headers.get("content-type")).toContain("text/plain");
+      expect(await security.text()).toContain(
+        "Canonical: https://ig.mynameistito.com/.well-known/security.txt"
+      );
+
+      const policy = await fetch(`${server.url}.well-known/dnt-policy.txt`);
+      expect(policy.status).toBe(200);
+      expect(await policy.text()).toContain("Last Updated: 2026-08-23");
+
+      const dnt = await fetch(`${server.url}.well-known/dnt`);
+      expect(dnt.status).toBe(200);
+      expect(dnt.headers.get("content-type")).toContain(
+        "application/tracking-status+json"
+      );
+      expect(await dnt.json()).toEqual({
+        policy: "https://ig.mynameistito.com/.well-known/dnt-policy.txt",
+        tracking: "N",
+      });
+    } finally {
+      server.stop(true);
+    }
+  });
 });

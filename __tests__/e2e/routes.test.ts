@@ -13,6 +13,7 @@ const fixtures = new Map<string, unknown>([
       canonicalUrl: "https://instagram.com/p/ABC",
       caption: "post caption",
       media: [{ type: "image", url: "https://cdn.example/image.jpg" }],
+      profilePictureUrl: "https://cdn.example/profile.jpg",
       username: "alice",
     },
   ],
@@ -79,7 +80,11 @@ describe("local real-entrypoint route contracts", () => {
       const oembedUrl = encodeURIComponent("https://instagram.com/p/ABC");
       const oembed = await fetch(`${server.url}oembed?url=${oembedUrl}`);
       expect(oembed.status).toBe(200);
-      expect(await oembed.json()).toMatchObject({ provider_name: "Instagram" });
+      expect(await oembed.json()).toMatchObject({
+        author_name: "alice",
+        author_url: "https://instagram.com/alice",
+        provider_name: "Instagram",
+      });
     } finally {
       server.stop(true);
     }

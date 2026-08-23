@@ -120,6 +120,15 @@ const responseFor = async (
   return htmlResponse(response.document, response.status);
 };
 
+const documentFor = async (service: EmbedService, request: EmbedRequest) => {
+  const result = await Effect.runPromise(
+    Effect.result(service.resolve(request))
+  );
+  return result._tag === "Success" && result.success._tag === "Html"
+    ? result.success
+    : undefined;
+};
+
 const handleOembed = async (
   service: EmbedService,
   request: Request,
@@ -135,25 +144,35 @@ const handleOembed = async (
   if (parsed._tag === "Failure") {
     return new Response("invalid oembed url", { status: 422 });
   }
-  const embed = await responseFor(service, {
+  const requestForEmbed = {
     location: parsed.success,
     mode: "standard",
     userAgent: userAgent(request),
-  });
-  if (embed.status !== 200) {
-    return embed;
+  } as const;
+  const resolved = await documentFor(service, requestForEmbed);
+  if (resolved === undefined) {
+    return responseFor(service, requestForEmbed);
   }
-  return Response.json(
-    {
-      html: await embed.text(),
-      provider_name: "Instagram",
-      provider_url: `${instagramOrigin}/`,
-      title: "Instagram embed",
-      type: "rich",
-      version: "1.0",
-    },
-    { headers: { "X-Content-Type-Options": "nosniff" } }
-  );
+  const embed = htmlResponse(resolved.document, resolved.status);
+  const oEmbed = {
+    html: await embed.text(),
+    provider_name: "Instagram",
+    provider_url: `${instagramOrigin}/`,
+    title: "Instagram embed",
+    type: "rich" as const,
+    version: "1.0" as const,
+  };
+  if (resolved.document.authorName !== undefined) {
+    Object.assign(oEmbed, { author_name: resolved.document.authorName });
+  }
+  if (resolved.document.authorUrl !== undefined) {
+    Object.assign(oEmbed, {
+      author_url: resolved.document.authorUrl.toString(),
+    });
+  }
+  return Response.json(oEmbed, {
+    headers: { "X-Content-Type-Options": "nosniff" },
+  });
 };
 
 const handleMedia = async (

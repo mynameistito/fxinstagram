@@ -37,11 +37,24 @@ describe("HTTP policies and projection", () => {
       card: "summary_large_image",
       description: "line <script>alert('x')</script> & \"quoted\"",
       imageUrl: new URL("https://cdn.example/image.jpg?a=1&b=2"),
+      authorIconUrl: new URL("https://cdn.example/profile.jpg"),
+      authorName: "alice",
+      authorUrl: new URL("https://instagram.com/alice"),
+      footerText: "fxinstagram",
       title: "<unsafe> & title",
     });
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&quot;quoted&quot;");
     expect(html).not.toContain("<script>");
+    expect(html).toContain('property="og:site_name" content="fxinstagram"');
+    expect(html).toContain('name="author" content="alice"');
+    expect(html).toContain('property="profile:username" content="alice"');
+    expect(html).toContain(
+      'property="article:author" content="https://instagram.com/alice"'
+    );
+    expect(html).toContain(
+      'property="profile:image" content="https://cdn.example/profile.jpg"'
+    );
   });
 
   test("renders direct MP4 metadata for playable cards", () => {

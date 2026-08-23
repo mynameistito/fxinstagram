@@ -83,11 +83,27 @@ export const renderDocument = (document: EmbedDocument): string => {
     meta("og:title", document.title),
     meta("og:description", document.description),
     meta("og:url", document.canonicalUrl.toString()),
+    meta("og:site_name", document.footerText ?? "fxinstagram"),
     meta(
       "og:type",
       document.videoUrl === undefined ? "website" : "video.other"
     ),
     meta("twitter:card", document.card),
+    document.authorName === undefined
+      ? ""
+      : namedMeta("author", document.authorName),
+    document.authorName === undefined
+      ? ""
+      : meta("profile:username", document.authorName),
+    document.authorUrl === undefined
+      ? ""
+      : meta("article:author", document.authorUrl.toString()),
+    document.authorName === undefined
+      ? ""
+      : meta("twitter:creator", `@${document.authorName}`),
+    document.authorIconUrl === undefined
+      ? ""
+      : meta("profile:image", document.authorIconUrl.toString()),
     document.imageUrl === undefined
       ? ""
       : meta("og:image", document.imageUrl.toString()),

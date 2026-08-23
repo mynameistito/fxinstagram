@@ -13,6 +13,8 @@ const videoVersionsUrl =
   /"video_versions"\s*:\s*\[\s*\{\s*"type"\s*:\s*\d+\s*,\s*"url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 const mediaHostSuffixes = [".cdninstagram.com", ".fbcdn.net"] as const;
 const normalizedMediaHost = "scontent.cdninstagram.com";
+const profilePictureUrl =
+  /"profile_pic_url(?:_hd)?"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 
 const decodeHtml = (value: string): string =>
   value
@@ -72,7 +74,12 @@ const normalizeMediaUrl = (url: URL): URL | undefined => {
   return normalized;
 };
 
-const decodeNestedJsonString = (value: string): string | undefined => {
+const decodeNestedJsonString = (
+  value: string | undefined
+): string | undefined => {
+  if (value === undefined) {
+    return undefined;
+  }
   let decoded = value;
   for (let depth = 0; depth < 2 && decoded.includes("\\"); depth += 1) {
     try {
@@ -99,6 +106,12 @@ const usernameFrom = (canonicalUrl: URL, title: string): string => {
   return titleUsername ?? "instagram";
 };
 
+const profilePictureFrom = (html: string): URL | undefined => {
+  const value = profilePictureUrl.exec(html)?.groups?.value;
+  const rawUrl = safeUrl(decodeNestedJsonString(value));
+  return rawUrl === undefined ? undefined : normalizeMediaUrl(rawUrl);
+};
+
 /** Parse Instagram's public Open Graph document into normalized metadata. */
 export const parsePublicInstagramHtml = (
   html: string,
@@ -115,13 +128,19 @@ export const parsePublicInstagramHtml = (
     return Effect.fail({ _tag: "ProviderResponseInvalid", provider });
   }
   const title = values.get("og:title") ?? values.get("twitter:title") ?? "";
-  return Effect.succeed({
+  const profilePicture = profilePictureFrom(html);
+  const post: InstagramPost = {
     canonicalUrl,
     caption: values.get("og:description") ?? values.get("description") ?? "",
     media: [{ type: "image", url: imageUrl }],
     shortcode: location.shortcode,
     username: usernameFrom(canonicalUrl, title),
-  });
+  };
+  return Effect.succeed(
+    profilePicture === undefined
+      ? post
+      : { ...post, profilePictureUrl: profilePicture }
+  );
 };
 
 /** Extract and normalize a direct video URL from Instagram's embed document. */

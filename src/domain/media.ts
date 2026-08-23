@@ -35,6 +35,8 @@ export type MediaSelection =
 export interface InstagramPost {
   readonly shortcode: string;
   readonly username: string;
+  /** Public profile image used as the embed author icon when available. */
+  readonly profilePictureUrl?: URL;
   readonly caption: string;
   readonly media: readonly InstagramMedia[];
   readonly canonicalUrl: URL;

@@ -70,6 +70,18 @@ const parsePost = (
     media: media.filter((item): item is InstagramMedia => item !== undefined),
     shortcode: location.shortcode,
     username: value.username,
+    ...(typeof value.profilePictureUrl === "string"
+      ? (() => {
+          try {
+            const profilePictureUrl = new URL(value.profilePictureUrl);
+            return profilePictureUrl.protocol === "https:"
+              ? { profilePictureUrl }
+              : {};
+          } catch {
+            return {};
+          }
+        })()
+      : {}),
   };
 };
 

@@ -27,6 +27,7 @@ jobs:
       deployment_sha: ${{ steps.resolve.outputs.deployment_sha }}
       pr_number: ${{ steps.resolve.outputs.pr_number }}
       stage: ${{ steps.resolve.outputs.stage }}
+      preview: ${{ steps.resolve.outputs.preview }}
     steps:
       - name: Resolve deployment target
         id: resolve
@@ -43,6 +44,7 @@ jobs:
               echo "deploy=true"
               echo "deployment_sha=$DEPLOYMENT_SHA"
               echo "stage=prod"
+              echo "preview=false"
             } >> "$GITHUB_OUTPUT"
             exit 0
           fi
@@ -73,6 +75,7 @@ jobs:
             echo "deployment_sha=$DEPLOYMENT_SHA"
             echo "pr_number=$PULL_REQUEST_NUMBER"
             echo "stage=pr-$PULL_REQUEST_NUMBER"
+            echo "preview=true"
           } >> "$GITHUB_OUTPUT"
 
   deploy:
@@ -81,6 +84,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      deployments: write
       pull-requests: write
     env:
       DEPLOYMENT_SHA: ${{ needs.resolve.outputs.deployment_sha }}
@@ -100,12 +104,63 @@ jobs:
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Create GitHub deployment
+        id: create-deployment
+        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: create
+          stage: ${{ env.STAGE }}
+          worker-name: fxinstagram
+          deployment-sha: ${{ env.DEPLOYMENT_SHA }}
       - name: Deploy Alchemy stack
-        run: bun alchemy deploy alchemy.run.ts --stage "$STAGE" --yes
+        id: deploy
+        run: |
+          set -o pipefail
+          bun alchemy deploy alchemy.run.ts --stage "$STAGE" --yes 2>&1 | tee "$RUNNER_TEMP/alchemy-deploy.log"
+          if [ "$STAGE" = "prod" ]; then
+            url="https://ig.mynameistito.com"
+          else
+            url="$(grep -Eo 'https://[[:alnum:].-]+workers.dev' "$RUNNER_TEMP/alchemy-deploy.log" | tail -n 1 || true)"
+          fi
+          if [ -z "$url" ]; then
+            echo "::error::Could not determine the deployed Worker URL from Alchemy output."
+            exit 1
+          fi
+          echo "url=$url" >> "$GITHUB_OUTPUT"
         env:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Complete GitHub deployment
+        if: always() && steps.create-deployment.outcome == 'success'
+        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: complete
+          stage: ${{ env.STAGE }}
+          worker-name: fxinstagram
+          deployment-sha: ${{ env.DEPLOYMENT_SHA }}
+          deployment-id: ${{ steps.create-deployment.outputs.deployment-id }}
+          deployment-url: ${{ steps.deploy.outputs.url }}
+          deploy-outcome: ${{ steps.deploy.outcome }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      - name: Comment deployment status on pull request
+        if: always() && needs.resolve.outputs.preview == 'true' && steps.create-deployment.outcome == 'success'
+        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: comment
+          stage: ${{ env.STAGE }}
+          worker-name: fxinstagram
+          deployment-sha: ${{ env.DEPLOYMENT_SHA }}
+          pull-request-number: ${{ needs.resolve.outputs.pr_number }}
+          deployment-url: ${{ steps.deploy.outputs.url }}
+          deploy-outcome: ${{ steps.deploy.outcome }}
+          cloudflare-account-id: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
 
   cleanup:
     if: >-
@@ -113,6 +168,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+      deployments: write
       pull-requests: write
     env:
       STAGE: ${{ format('pr-{0}', github.event.pull_request.number) }}
@@ -144,3 +200,12 @@ jobs:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           PULL_REQUEST: ${{ github.event.pull_request.number }}
+      - name: Delete GitHub preview deployments
+        uses: mynameistito/.github/.github/actions/deployment-report@2ec34f2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          mode: cleanup
+          stage: ${{ env.STAGE }}
+          worker-name: fxinstagram
+          deployment-sha: ${{ github.sha }}

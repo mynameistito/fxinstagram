@@ -16,6 +16,7 @@ import type {
   HttpTelemetry,
   RateLimitConfig,
 } from "./telemetry.ts";
+import { wellKnownResponse } from "./well-known.ts";
 
 const instagramOrigin = "https://instagram.com";
 const maxRequestUrlLength = 2048;
@@ -314,6 +315,19 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
         started
       );
       return response;
+    }
+    const wellKnown = wellKnownResponse(url.pathname);
+    if (wellKnown !== undefined) {
+      const result = withRequestId(wellKnown, id);
+      await recordTelemetry(
+        options?.httpTelemetry,
+        id,
+        operationFor(url.pathname),
+        result.status >= 500 ? "failure" : "success",
+        result.status,
+        started
+      );
+      return result;
     }
     const parts = url.pathname.split("/").filter(Boolean);
     let response: Response;

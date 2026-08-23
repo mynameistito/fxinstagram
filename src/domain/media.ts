@@ -13,6 +13,8 @@ export type InstagramMedia =
   | {
       readonly type: "video";
       readonly url: URL;
+      /** Poster image used by link-preview clients before playback starts. */
+      readonly posterUrl?: URL;
       readonly width?: number;
       readonly height?: number;
     };

@@ -47,10 +47,14 @@ describe("HTTP policies and projection", () => {
       canonicalUrl: new URL("https://instagram.com/reel/ABC"),
       card: "player",
       description: "video",
+      imageUrl: new URL("https://scontent.cdninstagram.com/poster.jpg"),
       title: "@alice",
       videoUrl: new URL("https://scontent.cdninstagram.com/video.mp4?a=1&b=2"),
     });
     expect(html).toContain('property="og:video:type" content="video/mp4"');
+    expect(html).toContain(
+      'property="og:image" content="https://scontent.cdninstagram.com/poster.jpg"'
+    );
     expect(html).toContain(
       'property="twitter:player:stream" content="https://scontent.cdninstagram.com/video.mp4?a=1&amp;b=2"'
     );

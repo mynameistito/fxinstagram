@@ -81,6 +81,7 @@ describe("public Instagram metadata source", () => {
     const post = await Effect.runPromise(source.find(location));
     expect(post.media).toEqual([
       {
+        posterUrl: new URL("https://scontent.cdninstagram.com/image.jpg"),
         type: "video",
         url: new URL("https://scontent.cdninstagram.com/video.mp4"),
       },

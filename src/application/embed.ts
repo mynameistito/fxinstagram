@@ -181,9 +181,17 @@ export const makeEmbedService = (
             status: 200,
           } as const;
         }
+        const videoDocument =
+          media.posterUrl === undefined
+            ? { ...document, videoUrl: media.url }
+            : {
+                ...document,
+                imageUrl: media.posterUrl,
+                videoUrl: media.url,
+              };
         return {
           _tag: "Html",
-          document: { ...document, videoUrl: media.url },
+          document: videoDocument,
           status: 200,
         } as const;
       });

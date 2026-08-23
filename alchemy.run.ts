@@ -5,6 +5,7 @@ import * as Cloudflare from "alchemy/Cloudflare";
 import { Stage } from "alchemy/Stage";
 import { Config, Effect } from "effect";
 
+// Preview deployment workflow smoke test; no runtime behavior change.
 const PROD_STAGE = "prod";
 const WORKER_NAME = "fxinstagram";
 const CUSTOM_DOMAIN = "ig.mynameistito.com";

@@ -32,7 +32,7 @@ bun install
 bun run index.ts
 ```
 
-Copy `.env.example` to `.env` when overriding local defaults. Configuration names are `PUBLIC_ORIGIN`, `ALLOWED_MEDIA_HOSTS`, `METADATA_TIMEOUT_MS`, `METADATA_CACHE_TTL_SECONDS`, and optional `METADATA_PROVIDER_TOKEN`. Local defaults use port `8787`, HTTP links with `127.0.0.1`, the `cdn.example` media host, a 1 second metadata timeout, and a 60 second cache TTL. The local provider is deterministic fixture JSON; no live Instagram request is made.
+Copy `.env.example` to `.env` when overriding local defaults. Configuration names are `PUBLIC_ORIGIN`, `ALLOWED_MEDIA_HOSTS`, `METADATA_TIMEOUT_MS`, `METADATA_CACHE_TTL_SECONDS`, and optional `METADATA_PROVIDER_TOKEN`. Local defaults use port `8787`, HTTP links with `127.0.0.1`, the `cdn.example` media host, a 1-second metadata timeout, and a 60-second cache TTL. The local provider is deterministic fixture JSON; no live Instagram request is made.
 
 ## Verification
 

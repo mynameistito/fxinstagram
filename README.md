@@ -1,6 +1,8 @@
 # fxinstagram
 
-fxinstagram serves Discord-compatible, server-rendered metadata for supported Instagram URLs. It is a URL rewriting service, not a Discord bot and not affiliated with Instagram or Meta. “Instagram” and related marks belong to their respective owners.
+fxinstagram is a community-built, open-source service that serves Discord-compatible, server-rendered metadata for supported Instagram URLs. It is a URL rewriting service, not a Discord bot.
+
+This project is not endorsed by, sponsored by, or affiliated with Meta Platforms, Inc. or any of its subsidiaries, including Instagram. “Instagram” and related marks belong to their respective owners.
 
 ## Supported URLs
 
@@ -30,7 +32,7 @@ bun install
 bun run index.ts
 ```
 
-Copy `.env.example` to `.env` when overriding local defaults. Configuration names are `PUBLIC_ORIGIN`, `ALLOWED_MEDIA_HOSTS`, `METADATA_TIMEOUT_MS`, `METADATA_CACHE_TTL_SECONDS`, and optional `METADATA_PROVIDER_TOKEN`. Local defaults use port `8787`, HTTPS links with `127.0.0.1`, the `cdn.example` media host, a 1 second metadata timeout, and a 60 second cache TTL. The local provider is deterministic fixture JSON; no live Instagram request is made.
+Copy `.env.example` to `.env` when overriding local defaults. Configuration names are `PUBLIC_ORIGIN`, `ALLOWED_MEDIA_HOSTS`, `METADATA_TIMEOUT_MS`, `METADATA_CACHE_TTL_SECONDS`, and optional `METADATA_PROVIDER_TOKEN`. Local defaults use port `8787`, HTTP links with `127.0.0.1`, the `cdn.example` media host, a 1-second metadata timeout, and a 60-second cache TTL. The local provider is deterministic fixture JSON; no live Instagram request is made.
 
 ## Verification
 

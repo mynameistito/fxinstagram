@@ -65,8 +65,8 @@ describe("HTTP policies and projection", () => {
     const html = renderIndexDocument();
     expect(html).toContain('<html lang="en">');
     expect(html).toContain('src="https://cdn.tailwindcss.com/3.4.17"');
-    expect(html).toContain("bg-zinc-950");
-    expect(html).toContain("Better previews for Instagram links.");
+    expect(html).toContain("bg-white");
+    expect(html).toContain("FXInstagram");
     expect(html).toContain('href="https://buymeacoffee.com/mynameistito"');
     expect(html).toContain(
       'href="https://github.com/mynameistito/fxinstagram"'

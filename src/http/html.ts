@@ -35,64 +35,46 @@ export const renderIndexDocument = (): string => `<!doctype html>
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#09090b">
+    <meta name="theme-color" content="#ffffff">
     <title>FX Instagram | Better link previews</title>
     ${namedMeta("description", "FX Instagram turns supported Instagram URLs into useful previews for Discord and other chat clients.")}
     <script src="https://cdn.tailwindcss.com/3.4.17"></script>
   </head>
-  <body class="min-h-[100dvh] bg-zinc-950 font-sans text-zinc-100 antialiased selection:bg-lime-300 selection:text-zinc-950">
-    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:rounded-lg focus:bg-lime-300 focus:px-4 focus:py-2 focus:font-semibold focus:text-zinc-950" href="#main-content">Skip to content</a>
-    <div class="mx-auto flex min-h-[100dvh] max-w-7xl flex-col px-5 py-5 sm:px-8 lg:px-10">
-      <header class="flex items-center justify-between border-b border-zinc-800 pb-4">
-        <a class="font-mono text-sm font-bold tracking-tight text-white" href="/" aria-label="FX Instagram home"><span class="text-lime-300">./</span>fxinstagram</a>
-        <nav class="flex items-center gap-4 text-xs font-medium text-zinc-400" aria-label="Primary navigation">
-          <a class="transition-colors hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram">Source</a>
-          <a class="rounded-full border border-zinc-700 px-3 py-1.5 text-zinc-200 transition-colors hover:border-lime-300 hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Support</a>
-        </nav>
+  <body class="min-h-[100dvh] bg-white font-sans text-black antialiased selection:bg-yellow-200 selection:text-black">
+    <a class="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-50 focus:bg-black focus:px-4 focus:py-2 focus:font-semibold focus:text-white" href="#main-content">Skip to content</a>
+    <main id="main-content" class="mx-0 max-w-5xl px-7 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
+      <header>
+        <h1 class="text-5xl font-black tracking-[-0.07em] sm:text-6xl lg:text-7xl">FXInstagram</h1>
+        <p class="mt-5 text-lg font-bold leading-7 sm:text-xl">A better way to embed Instagram posts on Discord, Telegram, and more.</p>
       </header>
-      <main id="main-content" class="flex flex-1 items-center py-8 lg:py-10">
-        <div class="grid w-full gap-8 lg:grid-cols-[1.15fr_.85fr] lg:items-center lg:gap-14">
-          <section aria-labelledby="hero-title">
-            <p class="mb-4 font-mono text-xs font-semibold uppercase tracking-[0.2em] text-lime-300">Open source link utility</p>
-            <h1 id="hero-title" class="max-w-3xl text-5xl font-black tracking-[-0.07em] text-white sm:text-7xl lg:text-[5.75rem] lg:leading-[0.9]">Better previews for Instagram links.</h1>
-            <p class="mt-5 max-w-xl text-base leading-7 text-zinc-400 sm:text-lg">FX Instagram turns supported Instagram URLs into server-rendered metadata that Discord and other chat clients can understand.</p>
-            <div class="mt-7 flex flex-wrap gap-3">
-              <a class="rounded-lg bg-lime-300 px-4 py-2.5 text-sm font-bold text-zinc-950 transition hover:bg-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://github.com/mynameistito/fxinstagram">View source code</a>
-              <a class="rounded-lg border border-zinc-700 px-4 py-2.5 text-sm font-semibold text-zinc-200 transition hover:border-lime-300 hover:text-lime-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Buy me a coffee</a>
-            </div>
-          </section>
-          <section class="rounded-2xl border border-zinc-800 bg-zinc-900/80 p-5 shadow-2xl shadow-black/20" aria-labelledby="usage-title">
-            <div class="mb-5 flex items-center justify-between">
-              <h2 id="usage-title" class="text-sm font-bold text-white">How to use it</h2>
-              <span class="rounded-full bg-lime-300/10 px-2.5 py-1 font-mono text-[10px] font-semibold uppercase tracking-wider text-lime-300">3 steps</span>
-            </div>
-            <ol class="space-y-4">
-              <li class="flex gap-3">
-                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">1</span>
-                <div><h3 class="text-sm font-semibold text-zinc-100">Copy an Instagram URL</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Posts, reels, IGTV, user-scoped posts, and stories are supported.</p></div>
-              </li>
-              <li class="flex gap-3">
-                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">2</span>
-                <div><h3 class="text-sm font-semibold text-zinc-100">Replace the hostname</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Keep the path and query string. Change only the hostname.</p></div>
-              </li>
-              <li class="flex gap-3">
-                <span class="flex size-6 shrink-0 items-center justify-center rounded-full bg-zinc-800 font-mono text-xs text-lime-300">3</span>
-                <div><h3 class="text-sm font-semibold text-zinc-100">Share the result</h3><p class="mt-1 text-xs leading-5 text-zinc-500">Chat clients can now build a richer preview.</p></div>
-              </li>
-            </ol>
-            <div class="mt-5 rounded-lg border border-zinc-800 bg-zinc-950 p-3 font-mono text-xs leading-6">
-              <div class="text-zinc-600"># replace only the host</div>
-              <div><span class="text-zinc-500">instagram.com</span><span class="px-2 text-zinc-700">→</span><span class="text-lime-300">ig.mynameistito.com</span><span class="text-zinc-400">/p/ABC</span></div>
-            </div>
-          </section>
+      <section class="mt-7" aria-labelledby="features-title">
+        <h2 id="features-title" class="text-2xl font-bold tracking-tight">Features <span aria-hidden="true">🌟</span></h2>
+        <ul class="mt-3 list-disc space-y-0.5 pl-7 text-base leading-6">
+          <li>Displays likes and comments count</li>
+          <li>Natively embeds images and videos</li>
+          <li>Removes tracking on redirects</li>
+          <li>Displays user verification status</li>
+        </ul>
+      </section>
+      <section class="mt-7" aria-labelledby="usage-title">
+        <h2 id="usage-title" class="text-2xl font-bold tracking-tight">Usage:</h2>
+        <div class="mt-3 space-y-0.5 text-base leading-6">
+          <p>Replace <code class="font-mono text-sm">https://instagram.com</code> with <code class="font-mono text-sm">https://ig.mynameistito.com</code> and keep the path.</p>
+          <p>FXInstagram is a free project that provides a better way to embed Instagram posts on Discord, Telegram, and more.</p>
+          <p>Built by the community. You can support the project at <a class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700" href="https://buymeacoffee.com/mynameistito">Buy Me a Coffee</a>.</p>
         </div>
-      </main>
-      <footer class="grid gap-4 border-t border-zinc-800 pt-4 text-xs text-zinc-500 sm:grid-cols-3">
-        <div><span class="font-semibold text-zinc-300">What it does</span><p class="mt-1">Useful previews, minimal machinery.</p></div>
-        <div><span class="font-semibold text-zinc-300">Independent project</span><p class="mt-1">Not endorsed by Meta or Instagram.</p></div>
-        <div class="sm:text-right"><span class="font-semibold text-zinc-300">Built in the open</span><p class="mt-1"><a class="text-lime-300 hover:text-lime-200" href="https://github.com/mynameistito/fxinstagram">github.com/mynameistito/fxinstagram</a></p></div>
+      </section>
+      <section class="mt-7" aria-labelledby="links-title">
+        <h2 id="links-title" class="text-2xl font-bold tracking-tight">Learn more:</h2>
+        <ul class="mt-3 list-disc space-y-0.5 pl-7 text-base leading-6">
+          <li><a class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700" href="https://github.com/mynameistito/fxinstagram">Source code</a></li>
+          <li><a class="text-blue-700 underline decoration-blue-300 underline-offset-2 hover:text-blue-950 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-700" href="https://github.com/mynameistito/fxinstagram/blob/main/README.md">Documentation</a></li>
+        </ul>
+      </section>
+      <footer class="mt-8 border-t border-zinc-200 pt-4 text-sm leading-6 text-zinc-600">
+        <p>This is a community-built open-source project. It is not endorsed by, sponsored by, or affiliated with Meta or its subsidiaries, including Instagram.</p>
       </footer>
-    </div>
+    </main>
   </body>
 </html>`;
 

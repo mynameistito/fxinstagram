@@ -83,6 +83,6 @@ describe("HTTP policies and projection", () => {
     expect(response.headers.get("content-security-policy")).toContain(
       "script-src https://cdn.tailwindcss.com"
     );
-    expect(await response.text()).toContain("How to use it");
+    expect(await response.text()).toContain("Usage:");
   });
 });

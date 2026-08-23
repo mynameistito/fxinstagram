@@ -9,6 +9,8 @@ const attribute =
   /(?<name>[:\w-]+)\s*=\s*(?<quote>["'])(?<value>.*?)\k<quote>/giu;
 const escapedVideoUrl = /\\"video_url\\":\\"(?<value>(?:\\\\.|[^"\\])*)\\"/u;
 const plainVideoUrl = /"video_url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
+const videoVersionsUrl =
+  /"video_versions"\s*:\s*\[\s*\{\s*"type"\s*:\s*\d+\s*,\s*"url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 const mediaHostSuffixes = [".cdninstagram.com", ".fbcdn.net"] as const;
 const normalizedMediaHost = "scontent.cdninstagram.com";
 
@@ -124,7 +126,10 @@ export const parsePublicInstagramHtml = (
 
 /** Extract and normalize a direct video URL from Instagram's embed document. */
 export const parsePublicInstagramVideo = (html: string): URL | undefined => {
-  const match = escapedVideoUrl.exec(html) ?? plainVideoUrl.exec(html);
+  const match =
+    videoVersionsUrl.exec(html) ??
+    escapedVideoUrl.exec(html) ??
+    plainVideoUrl.exec(html);
   const value = match?.groups?.value;
   if (value === undefined) {
     return undefined;

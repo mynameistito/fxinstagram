@@ -71,4 +71,11 @@ describe("public Instagram HTML parser", () => {
     );
     expect(parsePublicInstagramVideo("<html></html>")).toBeUndefined();
   });
+
+  test("extracts canonical video version URLs", () => {
+    const html = String.raw`<script>"video_versions":[{"type":101,"url":"https:\\/\\/instagram.fakl1-4.fna.fbcdn.net\\/o1\\/v\\/t2\\/video.mp4?x=1\u002526y\u00253D2"}]</script>`;
+    expect(parsePublicInstagramVideo(html)?.href).toBe(
+      "https://scontent.cdninstagram.com/o1/v/t2/video.mp4?x=1%26y%3D2"
+    );
+  });
 });

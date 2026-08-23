@@ -174,7 +174,9 @@ export const makePublicInstagramSource = (
       if (embed._tag === "Failure") {
         return post;
       }
-      const videoUrl = parsePublicInstagramVideo(embed.success);
+      const videoUrl =
+        parsePublicInstagramVideo(html) ??
+        parsePublicInstagramVideo(embed.success);
       return videoUrl === undefined
         ? post
         : (() => {

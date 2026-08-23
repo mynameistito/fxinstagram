@@ -16,7 +16,7 @@ describe("public Instagram metadata source", () => {
     const requested: URL[] = [];
     const source = makePublicInstagramSource((input, init) => {
       requested.push(new URL(input.toString()));
-      expect(init?.redirect).toBe("error");
+      expect(init?.redirect).toBe("manual");
       expect(init?.signal).toBeInstanceOf(AbortSignal);
       return Promise.resolve(
         new Response(html, { headers: { "content-type": "text/html" } })
@@ -28,6 +28,45 @@ describe("public Instagram metadata source", () => {
       "https://www.instagram.com/p/ABC/embed/captioned/",
     ]);
     expect(post.username).toBe("alice");
+  });
+
+  test("follows only bounded Instagram HTTPS redirects", async () => {
+    const requested: string[] = [];
+    const source = makePublicInstagramSource((input) => {
+      const url = input.toString();
+      requested.push(url);
+      if (url === "https://www.instagram.com/reel/ABC/") {
+        return Promise.resolve(
+          new Response(null, {
+            headers: { location: "https://instagram.com/reel/ABC/" },
+            status: 302,
+          })
+        );
+      }
+      return Promise.resolve(
+        new Response(html, { headers: { "content-type": "text/html" } })
+      );
+    });
+    await Effect.runPromise(source.find(location));
+    expect(requested.slice(0, 2)).toEqual([
+      "https://www.instagram.com/reel/ABC/",
+      "https://instagram.com/reel/ABC/",
+    ]);
+
+    const unsafe = makePublicInstagramSource(() =>
+      Promise.resolve(
+        new Response(null, {
+          headers: { location: "https://example.com/private" },
+          status: 302,
+        })
+      )
+    );
+    expect(
+      await Effect.runPromise(Effect.result(unsafe.find(location)))
+    ).toMatchObject({
+      _tag: "Failure",
+      failure: { _tag: "ProviderUnavailable" },
+    });
   });
 
   test("prefers a playable video from the embed document", async () => {

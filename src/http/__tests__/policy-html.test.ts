@@ -41,4 +41,21 @@ describe("HTTP policies and projection", () => {
     expect(html).toContain("&quot;quoted&quot;");
     expect(html).not.toContain("<script>");
   });
+
+  test("renders direct MP4 metadata for playable cards", () => {
+    const html = renderDocument({
+      canonicalUrl: new URL("https://instagram.com/reel/ABC"),
+      card: "player",
+      description: "video",
+      title: "@alice",
+      videoUrl: new URL("https://scontent.cdninstagram.com/video.mp4?a=1&b=2"),
+    });
+    expect(html).toContain('property="og:video:type" content="video/mp4"');
+    expect(html).toContain(
+      'property="twitter:player:stream" content="https://scontent.cdninstagram.com/video.mp4?a=1&amp;b=2"'
+    );
+    expect(html).toContain(
+      'property="twitter:player:stream:content_type" content="video/mp4"'
+    );
+  });
 });

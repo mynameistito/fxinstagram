@@ -42,7 +42,13 @@ export const renderDocument = (document: EmbedDocument): string => {
       : meta("og:image", document.imageUrl.toString()),
     document.videoUrl === undefined
       ? ""
-      : meta("og:video", document.videoUrl.toString()),
+      : [
+          meta("og:video", document.videoUrl.toString()),
+          meta("og:video:secure_url", document.videoUrl.toString()),
+          meta("og:video:type", "video/mp4"),
+          meta("twitter:player:stream", document.videoUrl.toString()),
+          meta("twitter:player:stream:content_type", "video/mp4"),
+        ].join(""),
     document.oEmbedUrl === undefined
       ? ""
       : `<link rel="alternate" type="application/json+oembed" href="${escapeHtml(document.oEmbedUrl.toString())}">`,

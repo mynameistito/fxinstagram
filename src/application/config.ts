@@ -3,7 +3,7 @@ import { Context, Effect, Redacted } from "effect";
 
 /** Typed startup configuration for metadata retrieval and caching. */
 export interface MetadataConfig {
-  readonly provider: "fixture-json";
+  readonly provider: "fixture-json" | "instagram-public-html";
   readonly providerUrl: URL;
   readonly requestTimeoutMs: number;
   readonly cacheTtlMs: number;

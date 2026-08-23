@@ -2,8 +2,8 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { startServer } from "../../runtime/server.ts";
-import type { HttpTelemetryEvent } from "../telemetry.ts";
+import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
+import { startServer } from "@/runtime/server.ts";
 
 const fixture = {
   canonicalUrl: "https://instagram.com/p/ABC",

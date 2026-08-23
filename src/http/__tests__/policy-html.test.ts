@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import type { EmbedService } from "../../application/embed.ts";
-import { renderDocument, renderIndexDocument } from "../html.ts";
-import { classifyUserAgent, statusForError } from "../policy.ts";
-import { makeRouter } from "../router.ts";
+import type { EmbedService } from "@/application/embed.ts";
+import { renderDocument, renderIndexDocument } from "@/http/html.ts";
+import { classifyUserAgent, statusForError } from "@/http/policy.ts";
+import { makeRouter } from "@/http/router.ts";
 
 // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("HTTP policies and projection", () => {

@@ -3,21 +3,21 @@ import { describe, expect, test } from "bun:test";
 
 import { Clock, Duration, Effect, Layer } from "effect";
 
-import { MetadataCacheService } from "../../application/cache.ts";
+import { layerMemory } from "@/adapters/cache/memory.ts";
+import { layerFixtureJson } from "@/adapters/instagram/fixture-json.ts";
+import { MetadataCacheService } from "@/application/cache.ts";
 import {
   parseMetadataConfig,
   MetadataConfigService,
-} from "../../application/config.ts";
+} from "@/application/config.ts";
 import {
   makeMetadataService,
   MetadataServiceTag,
   type MetadataTelemetryEvent,
-} from "../../application/metadata.ts";
-import { MetadataTelemetryService } from "../../application/telemetry.ts";
-import { parseInstagramUrl } from "../../domain/instagram-url.ts";
-import type { InstagramPost } from "../../domain/media.ts";
-import { layerMemory } from "../cache/memory.ts";
-import { layerFixtureJson } from "../instagram/fixture-json.ts";
+} from "@/application/metadata.ts";
+import { MetadataTelemetryService } from "@/application/telemetry.ts";
+import { parseInstagramUrl } from "@/domain/instagram-url.ts";
+import type { InstagramPost } from "@/domain/media.ts";
 
 const config = Effect.runSync(
   parseMetadataConfig({

@@ -3,11 +3,11 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { parseInstagramUrl } from "../../domain/instagram-url.ts";
 import {
   parsePublicInstagramHtml,
   parsePublicInstagramVideo,
-} from "../instagram/public-html.ts";
+} from "@/adapters/instagram/public-html.ts";
+import { parseInstagramUrl } from "@/domain/instagram-url.ts";
 
 const location = Effect.runSync(
   parseInstagramUrl("https://instagram.com/reel/ABC")

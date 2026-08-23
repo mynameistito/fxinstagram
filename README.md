@@ -53,19 +53,21 @@ There is no separate health route. Check a known embed path with a crawler user-
 
 ## Deployment
 
-Preview the Alchemy plan without mutating Cloudflare resources:
+Validate the Alchemy stack without Cloudflare credentials:
 
 ```sh
 bun run alchemy:check
 ```
 
-`alchemy.run.ts` is the deployment source of truth: it owns the Worker resource, entrypoint, environment bindings, defaults, and Alchemy state. `src/runtime/worker.ts` is only the runtime handler bundled by that resource. Local `alchemy dev` uses Alchemy's local state store; select the Cloudflare profile with `--profile` or `ALCHEMY_PROFILE` (defaulting to `default`). For example, run `bun run dev --profile mynameistito`. The same profile selection works with `bun run alchemy:check` and `bun run alchemy:deploy`. The Worker receives `PUBLIC_ORIGIN` from its deployed URL and the configured `ALLOWED_MEDIA_HOSTS`, `METADATA_CACHE_TTL_SECONDS`, `METADATA_TIMEOUT_MS`, and optional `METADATA_PROVIDER_TOKEN`. Provider secrets belong in the platform secret mechanism, never tracked files. The deployment does not provision durable cache storage.
+`alchemy.run.ts` is the deployment source of truth. The `prod` stage owns the `fxinstagram` Worker at `ig.mynameistito.com`; every `pr-<number>` stage gets an isolated `fxinstagram-pr-<number>` Worker and a `workers.dev` preview URL. `src/runtime/worker.ts` is only the runtime handler bundled by that resource. The Worker receives `PUBLIC_ORIGIN` from its deployed URL and the configured `ALLOWED_MEDIA_HOSTS`, `METADATA_CACHE_TTL_SECONDS`, `METADATA_TIMEOUT_MS`, and optional `METADATA_PROVIDER_TOKEN`. Provider secrets belong in the platform secret mechanism, never tracked files.
 
-After reviewing a clean plan, an operator may explicitly run `bun run alchemy:deploy`. Roll back by deploying the previously reviewed commit. `alchemy destroy` is destructive teardown and is outside the release gate.
+GitHub Actions requires repository secrets named `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`. CI runs without credentials. After CI succeeds for the exact commit, same-repository pull requests deploy a preview and receive an updated URL comment; closing the PR destroys only its validated `pr-<number>` stage. A successful push to `main` deploys production. Fork pull requests run CI but never receive deployment credentials.
+
+For an operator-driven development deployment, select a Cloudflare profile with `--profile` or `ALCHEMY_PROFILE` and run `bun run alchemy:deploy`. Roll back production by redeploying a previously reviewed commit. `alchemy destroy` is destructive; the automated cleanup workflow refuses every stage that is not shaped like `pr-<number>`.
 
 ## Release Risks
 
-Live-provider behavior is intentionally unverified because this release has no live provider adapter. Upstream volatility, media bandwidth cost, provider quotas, distributed rate limiting, production cache limits, retention, and the production hostname remain operational decisions. Direct media redirects avoid proxy bandwidth but depend on the allowlisted upstream URL remaining available.
+Live-provider behavior is intentionally unverified because this release has no live provider adapter. Upstream volatility, media bandwidth cost, provider quotas, distributed rate limiting, production cache limits, and retention remain operational decisions. Direct media redirects avoid proxy bandwidth but depend on the allowlisted upstream URL remaining available.
 
 ## Product Decisions
 

@@ -25,7 +25,6 @@ const maxPathLength = 512;
 interface RouterOptions {
   readonly httpTelemetry?: HttpTelemetry | undefined;
   readonly rateLimit?: RateLimitConfig | undefined;
-  readonly wellKnownOrigin?: URL | undefined;
 }
 
 const requestId = (): string => crypto.randomUUID();
@@ -317,10 +316,7 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
       );
       return response;
     }
-    const wellKnown = wellKnownResponse(
-      url.pathname,
-      options?.wellKnownOrigin ?? new URL(url.origin)
-    );
+    const wellKnown = wellKnownResponse(url.pathname);
     if (wellKnown !== undefined) {
       return withRequestId(wellKnown, id);
     }

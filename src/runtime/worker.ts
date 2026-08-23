@@ -53,7 +53,7 @@ const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
       )
     )
   );
-  return makeRouter(service, { wellKnownOrigin: config.success.publicOrigin });
+  return makeRouter(service);
 };
 
 const handlers = new WeakMap<object, Promise<Handler>>();

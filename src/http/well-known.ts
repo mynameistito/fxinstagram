@@ -1,33 +1,21 @@
-const policyDate = "2026-08-23";
-
-const securityContact = "mailto:security@mynameistito.com";
-
-const securityTxt = (origin: URL): string =>
-  [
-    `Contact: ${securityContact}`,
-    "Expires: 2027-08-23T00:00:00.000Z",
-    "Preferred-Languages: en",
-    `Canonical: ${new URL("/.well-known/security.txt", origin)}`,
-    "",
-  ].join("\n");
+const securityTxt = [
+  "Contact: mailto:contact@mynameistito.com",
+  "Canonical: https://mynameistito.com/.well-known/security.txt",
+  "Policy: https://mynameistito.com/terms-of-service",
+  "Encryption: https://mynameistito.com/.well-known/pgp.txt",
+  "Acknowledgments: https://mynameistito.com/security-acknowledgments.txt",
+  "Expires: 2027-01-01T00:00:00.000Z",
+].join("\n");
 
 const dntPolicyTxt = [
-  "Do Not Track Compliance Policy",
+  "# Do Not Track Policy for mynameistito.com",
+  "# Last Updated: 2026-08-23",
   "",
-  "Version 1.0",
+  "This website, mynameistito.com, does not currently respond to Do Not Track (DNT) signals transmitted by web browsers.",
   "",
-  `Last Updated: ${policyDate}`,
+  "Our data collection and usage practices are governed by our main Privacy Policy, available at https://mynameistito.com/privacy-policy. We encourage you to review our Privacy Policy to understand how we handle user data.",
   "",
-  'This service complies with user opt-outs from tracking via the "Do Not Track"',
-  'or "DNT" request header. The service does not use tracking cookies, targeted',
-  "advertising, or cross-site tracking. Requests are processed only to provide",
-  "the service's public Instagram metadata and media redirects.",
-  "",
-  "When a request includes DNT: 1, the service will not use request data for",
-  "tracking or combine it with data from other requests for tracking purposes.",
-  "",
-  "This policy is published at /.well-known/dnt-policy.txt.",
-  "",
+  "For questions regarding our privacy practices, please contact contact@mynameistito.com.",
 ].join("\n");
 
 const textResponse = (body: string): Response =>
@@ -39,41 +27,31 @@ const textResponse = (body: string): Response =>
     },
   });
 
-const dntResponse = (origin: URL): Response =>
-  Response.json(
-    {
-      policy: new URL("/.well-known/dnt-policy.txt", origin).toString(),
-      tracking: "N",
+const dntResponse = (): Response =>
+  new Response('{"policy": "/.well-known/dnt-policy.txt"}', {
+    headers: {
+      "Cache-Control": "public, max-age=86400",
+      "Content-Type": "application/tracking-status+json; charset=utf-8",
+      "X-Content-Type-Options": "nosniff",
     },
-    {
-      headers: {
-        "Cache-Control": "public, max-age=86400",
-        "Content-Type": "application/tracking-status+json; charset=utf-8",
-        "X-Content-Type-Options": "nosniff",
-      },
-    }
-  );
+  });
 
 /**
  * Render a registered well-known resource for the supplied public origin.
  *
  * @param pathname - The request pathname.
- * @param origin - The public origin used in canonical and policy links.
  * @returns The static resource response, or `undefined` for other paths.
  */
-export const wellKnownResponse = (
-  pathname: string,
-  origin: URL
-): Response | undefined => {
+export const wellKnownResponse = (pathname: string): Response | undefined => {
   switch (pathname) {
     case "/.well-known/security.txt": {
-      return textResponse(securityTxt(origin));
+      return textResponse(securityTxt);
     }
     case "/.well-known/dnt-policy.txt": {
       return textResponse(dntPolicyTxt);
     }
     case "/.well-known/dnt": {
-      return dntResponse(origin);
+      return dntResponse();
     }
     default: {
       return undefined;

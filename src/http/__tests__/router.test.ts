@@ -68,23 +68,40 @@ describe("real Bun HTTP router", () => {
       const security = await fetch(`${server.url}.well-known/security.txt`);
       expect(security.status).toBe(200);
       expect(security.headers.get("content-type")).toContain("text/plain");
-      expect(await security.text()).toContain(
-        "Canonical: https://ig.mynameistito.com/.well-known/security.txt"
+      expect(await security.text()).toBe(
+        [
+          "Contact: mailto:contact@mynameistito.com",
+          "Canonical: https://mynameistito.com/.well-known/security.txt",
+          "Policy: https://mynameistito.com/terms-of-service",
+          "Encryption: https://mynameistito.com/.well-known/pgp.txt",
+          "Acknowledgments: https://mynameistito.com/security-acknowledgments.txt",
+          "Expires: 2027-01-01T00:00:00.000Z",
+        ].join("\n")
       );
 
       const policy = await fetch(`${server.url}.well-known/dnt-policy.txt`);
       expect(policy.status).toBe(200);
-      expect(await policy.text()).toContain("Last Updated: 2026-08-23");
+      expect(await policy.text()).toBe(
+        [
+          "# Do Not Track Policy for mynameistito.com",
+          "# Last Updated: 2026-08-23",
+          "",
+          "This website, mynameistito.com, does not currently respond to Do Not Track (DNT) signals transmitted by web browsers.",
+          "",
+          "Our data collection and usage practices are governed by our main Privacy Policy, available at https://mynameistito.com/privacy-policy. We encourage you to review our Privacy Policy to understand how we handle user data.",
+          "",
+          "For questions regarding our privacy practices, please contact contact@mynameistito.com.",
+        ].join("\n")
+      );
 
       const dnt = await fetch(`${server.url}.well-known/dnt`);
       expect(dnt.status).toBe(200);
       expect(dnt.headers.get("content-type")).toContain(
         "application/tracking-status+json"
       );
-      expect(await dnt.json()).toEqual({
-        policy: "https://ig.mynameistito.com/.well-known/dnt-policy.txt",
-        tracking: "N",
-      });
+      expect(await dnt.text()).toBe(
+        '{"policy": "/.well-known/dnt-policy.txt"}'
+      );
     } finally {
       server.stop(true);
     }

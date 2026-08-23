@@ -14,6 +14,8 @@ import {
 const maxResponseBytes = 1_048_576;
 const provider = "instagram-public-html";
 const upstreamOrigin = "https://www.instagram.com";
+const upstreamHosts = new Set(["instagram.com", "www.instagram.com"]);
+const maxRedirects = 3;
 
 /** Minimal outbound HTTP capability owned by the Instagram adapter. */
 export type InstagramFetch = (
@@ -60,6 +62,43 @@ const readBoundedText = async (response: Response): Promise<string> => {
   } finally {
     reader.releaseLock();
   }
+};
+
+const fetchWithSafeRedirects = async (
+  fetcher: InstagramFetch,
+  initialUrl: URL,
+  signal: AbortSignal
+): Promise<Response> => {
+  let url = initialUrl;
+  for (let redirects = 0; redirects <= maxRedirects; redirects += 1) {
+    // oxlint-disable-next-line no-await-in-loop -- Redirect targets must be checked before the next sequential request.
+    const response = await fetcher(url, {
+      headers: {
+        Accept: "text/html",
+        "User-Agent": "Mozilla/5.0 (compatible; fxinstagram/1.0)",
+      },
+      redirect: "manual",
+      signal,
+    });
+    if (response.status < 300 || response.status >= 400) {
+      return response;
+    }
+    const location = response.headers.get("location");
+    if (location === null || redirects === maxRedirects) {
+      throw new Error("Instagram redirect could not be followed safely");
+    }
+    const target = new URL(location, url);
+    if (
+      target.protocol !== "https:" ||
+      !upstreamHosts.has(target.hostname.toLowerCase()) ||
+      target.username !== "" ||
+      target.password !== ""
+    ) {
+      throw new Error("Instagram returned an unsafe redirect target");
+    }
+    url = target;
+  }
+  throw new Error("Instagram redirect limit exceeded");
 };
 
 const responseBody = (
@@ -118,15 +157,7 @@ const fetchPage = (
       cause,
       provider,
     }),
-    try: (signal) =>
-      fetcher(url, {
-        headers: {
-          Accept: "text/html",
-          "User-Agent": "Mozilla/5.0 (compatible; fxinstagram/1.0)",
-        },
-        redirect: "error",
-        signal,
-      }),
+    try: (signal) => fetchWithSafeRedirects(fetcher, url, signal),
   }).pipe(Effect.flatMap((response) => responseBody(response, location)));
 
 /** Create the live, credential-free Instagram public HTML metadata adapter. */

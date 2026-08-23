@@ -1,4 +1,4 @@
-import type { EmbedDocument } from "../application/embed.ts";
+import type { EmbedDocument } from "@/application/embed.ts";
 
 const escapeHtml = (value: string): string =>
   value.replaceAll(/[&<>"']/gu, (character) => {

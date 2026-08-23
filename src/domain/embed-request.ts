@@ -5,8 +5,8 @@ import {
   String as SchemaString,
 } from "effect/Schema";
 
-import type { EmbedMode } from "./embed-policy.ts";
-import type { InstagramLocation } from "./instagram-url.ts";
+import type { EmbedMode } from "@/domain/embed-policy.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
 
 /** Untrusted query and header values accepted by the application boundary. */
 export interface EmbedRequestInput {

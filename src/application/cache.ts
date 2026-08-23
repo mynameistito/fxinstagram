@@ -1,7 +1,7 @@
 import { Context } from "effect";
 import type { Duration, Effect } from "effect";
 
-import type { InstagramPost } from "../domain/media.ts";
+import type { InstagramPost } from "@/domain/media.ts";
 
 /** The canonical identity used by metadata caches. */
 /** Failures produced by a metadata cache. */

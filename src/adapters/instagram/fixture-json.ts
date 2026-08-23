@@ -1,14 +1,14 @@
 // oxlint-disable anti-slop/no-unsafe-dictionary-type, anti-slop/no-unknown-parameters, anti-slop/no-runtime-typeof, anti-slop/no-conditional-empty-object-spread
 import { Effect, Layer } from "effect";
 
-import { MetadataSourceService } from "../../application/metadata-ports.ts";
-import type { InstagramLocation } from "../../domain/instagram-url.ts";
+import { MetadataSourceService } from "@/application/metadata-ports.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
 import type {
   InstagramMedia,
   InstagramPost,
   MetadataError,
   InstagramMetadataSource,
-} from "../../domain/media.ts";
+} from "@/domain/media.ts";
 
 type RecordValue = Readonly<Record<string, unknown>>;
 

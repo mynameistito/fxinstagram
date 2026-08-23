@@ -1,15 +1,15 @@
 import { Effect } from "effect";
 
-import type { MetadataCache } from "../application/cache.ts";
-import type { MetadataConfig } from "../application/config.ts";
-import { makeEmbedService } from "../application/embed.ts";
-import type { EmbedServiceConfig } from "../application/embed.ts";
-import type { MetadataTelemetry } from "../application/metadata.ts";
-import type { InstagramMetadataSource } from "../domain/media.ts";
-import { makeRouter } from "../http/router.ts";
-import type { HttpTelemetry, RateLimitConfig } from "../http/telemetry.ts";
-import { metadataLayer } from "./metadata.ts";
-import type { MetadataLayerOverrides } from "./metadata.ts";
+import type { MetadataCache } from "@/application/cache.ts";
+import type { MetadataConfig } from "@/application/config.ts";
+import { makeEmbedService } from "@/application/embed.ts";
+import type { EmbedServiceConfig } from "@/application/embed.ts";
+import type { MetadataTelemetry } from "@/application/metadata.ts";
+import type { InstagramMetadataSource } from "@/domain/media.ts";
+import { makeRouter } from "@/http/router.ts";
+import type { HttpTelemetry, RateLimitConfig } from "@/http/telemetry.ts";
+import { metadataLayer } from "@/runtime/metadata.ts";
+import type { MetadataLayerOverrides } from "@/runtime/metadata.ts";
 
 export interface ServerOptions {
   readonly port?: number;

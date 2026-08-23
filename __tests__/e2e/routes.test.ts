@@ -4,7 +4,7 @@ import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
 
 import type { HttpTelemetryEvent } from "../../src/http/telemetry.ts";
-import { startServer } from "../../src/runtime/server.ts";
+import { withTestServer } from "../test-server.ts";
 
 const fixtures = new Map<string, unknown>([
   [
@@ -53,93 +53,93 @@ const bot = { headers: { "user-agent": "Discordbot/2.0" } };
 
 describe("local real-entrypoint route contracts", () => {
   test("serves post, reel, story, gallery, grid, and oEmbed projections", async () => {
-    const server = await startServer({
-      fixtures,
-      origin: new URL("http://127.0.0.1:0"),
-    });
-    try {
-      const post = await fetch(`${server.url}p/ABC`, bot);
-      expect(post.status).toBe(200);
-      expect(post.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/u);
-      expect(await post.text()).toContain("post caption");
+    await withTestServer(
+      {
+        fixtures,
+        origin: new URL("http://127.0.0.1:0"),
+      },
+      async (server) => {
+        const post = await fetch(`${server.url}p/ABC`, bot);
+        expect(post.status).toBe(200);
+        expect(post.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/u);
+        expect(await post.text()).toContain("post caption");
 
-      const reel = await fetch(`${server.url}reel/REEL`, bot);
-      expect(reel.status).toBe(200);
-      expect(await reel.text()).toContain("video.mp4");
+        const reel = await fetch(`${server.url}reel/REEL`, bot);
+        expect(reel.status).toBe(200);
+        expect(await reel.text()).toContain("video.mp4");
 
-      const story = await fetch(`${server.url}stories/alice/STORY`, bot);
-      expect(story.status).toBe(200);
+        const story = await fetch(`${server.url}stories/alice/STORY`, bot);
+        expect(story.status).toBe(200);
 
-      const gallery = await fetch(`${server.url}p/GALLERY?gallery=1`, bot);
-      expect(gallery.status).toBe(200);
-      expect(await gallery.text()).toContain("one.jpg");
+        const gallery = await fetch(`${server.url}p/GALLERY?gallery=1`, bot);
+        expect(gallery.status).toBe(200);
+        expect(await gallery.text()).toContain("one.jpg");
 
-      const grid = await fetch(`${server.url}grid/GALLERY`, bot);
-      expect(grid.status).toBe(200);
+        const grid = await fetch(`${server.url}grid/GALLERY`, bot);
+        expect(grid.status).toBe(200);
 
-      const oembedUrl = encodeURIComponent("https://instagram.com/p/ABC");
-      const oembed = await fetch(`${server.url}oembed?url=${oembedUrl}`);
-      expect(oembed.status).toBe(200);
-      expect(await oembed.json()).toMatchObject({
-        author_name: "alice",
-        author_url: "https://instagram.com/alice",
-        provider_name: "Instagram",
-      });
-    } finally {
-      server.stop(true);
-    }
+        const oembedUrl = encodeURIComponent("https://instagram.com/p/ABC");
+        const oembed = await fetch(`${server.url}oembed?url=${oembedUrl}`);
+        expect(oembed.status).toBe(200);
+        expect(await oembed.json()).toMatchObject({
+          author_name: "alice",
+          author_url: "https://instagram.com/alice",
+          provider_name: "Instagram",
+        });
+      }
+    );
   });
 
   test("supports direct image and video redirects through the safe media route", async () => {
-    const server = await startServer({
-      fixtures,
-      origin: new URL("http://127.0.0.1:0"),
-    });
-    try {
-      const image = await fetch(`${server.url}p/ABC?direct=1`, {
-        ...bot,
-        redirect: "manual",
-      });
-      expect(image.status).toBe(302);
-      expect(image.headers.get("location")).toContain(`/images/ABC/0`);
+    await withTestServer(
+      {
+        fixtures,
+        origin: new URL("http://127.0.0.1:0"),
+      },
+      async (server) => {
+        const image = await fetch(`${server.url}p/ABC?direct=1`, {
+          ...bot,
+          redirect: "manual",
+        });
+        expect(image.status).toBe(302);
+        expect(image.headers.get("location")).toContain(`/images/ABC/0`);
 
-      const video = await fetch(`${server.url}videos/REEL/0`, {
-        redirect: "manual",
-      });
-      expect(video.status).toBe(302);
-      expect(video.headers.get("location")).toBe(
-        "https://cdn.example/video.mp4"
-      );
-    } finally {
-      server.stop(true);
-    }
+        const video = await fetch(`${server.url}videos/REEL/0`, {
+          redirect: "manual",
+        });
+        expect(video.status).toBe(302);
+        expect(video.headers.get("location")).toBe(
+          "https://cdn.example/video.mp4"
+        );
+      }
+    );
   });
 
   test("records only correlated, typed request telemetry", async () => {
     const events: HttpTelemetryEvent[] = [];
-    const server = await startServer({
-      fixtures,
-      httpTelemetry: {
-        record: (event) =>
-          Effect.sync(() => {
-            events.push(event);
-          }),
+    await withTestServer(
+      {
+        fixtures,
+        httpTelemetry: {
+          record: (event) =>
+            Effect.sync(() => {
+              events.push(event);
+            }),
+        },
+        origin: new URL("http://127.0.0.1:0"),
       },
-      origin: new URL("http://127.0.0.1:0"),
-    });
-    try {
-      const response = await fetch(`${server.url}p/ABC`, bot);
-      expect(events).toHaveLength(1);
-      expect(events[0]).toMatchObject({
-        operation: "content",
-        outcome: "success",
-        requestId: response.headers.get("x-request-id"),
-        status: 200,
-      });
-      expect(JSON.stringify(events)).not.toContain("ABC");
-      expect(JSON.stringify(events)).not.toContain("cdn.example");
-    } finally {
-      server.stop(true);
-    }
+      async (server) => {
+        const response = await fetch(`${server.url}p/ABC`, bot);
+        expect(events).toHaveLength(1);
+        expect(events[0]).toMatchObject({
+          operation: "content",
+          outcome: "success",
+          requestId: response.headers.get("x-request-id"),
+          status: 200,
+        });
+        expect(JSON.stringify(events)).not.toContain("ABC");
+        expect(JSON.stringify(events)).not.toContain("cdn.example");
+      }
+    );
   });
 });

@@ -27,6 +27,8 @@ export interface EmbedDocument {
   readonly authorIconUrl?: URL;
   readonly footerText?: string;
   readonly imageUrl?: URL;
+  readonly imageWidth?: number;
+  readonly imageHeight?: number;
   readonly videoUrl?: URL;
   readonly oEmbedUrl?: URL;
 }
@@ -99,6 +101,13 @@ const selectedUrl = (selection: MediaSelection): URL | undefined => {
   return selection.media.url;
 };
 
+const imageDimensions = (
+  media: { readonly width?: number; readonly height?: number } | undefined
+): Pick<EmbedDocument, "imageWidth" | "imageHeight"> =>
+  media?.width !== undefined && media.height !== undefined
+    ? { imageHeight: media.height, imageWidth: media.width }
+    : {};
+
 const hasSafeMedia = (
   media: readonly { readonly url: URL }[],
   hosts: ReadonlySet<string>
@@ -165,12 +174,16 @@ export const makeEmbedService = (
             oEmbedUrl: localUrl(config, "/oembed", {
               url: post.canonicalUrl.toString(),
             }),
-            title: `${post.username} on Instagram`,
+            title: `${post.username} on fxinstagram`,
           };
           if (imageUrl !== undefined) {
             return {
               _tag: "Html",
-              document: { ...document, imageUrl },
+              document: {
+                ...document,
+                ...imageDimensions(first),
+                imageUrl,
+              },
               status: 200,
             } as const;
           }
@@ -189,12 +202,16 @@ export const makeEmbedService = (
           oEmbedUrl: localUrl(config, "/oembed", {
             url: post.canonicalUrl.toString(),
           }),
-          title: `${post.username} on Instagram`,
+          title: `${post.username} on fxinstagram`,
         };
         if (media.type === "image") {
           return {
             _tag: "Html",
-            document: { ...document, imageUrl: media.url },
+            document: {
+              ...document,
+              ...imageDimensions(media),
+              imageUrl: media.url,
+            },
             status: 200,
           } as const;
         }
@@ -203,6 +220,7 @@ export const makeEmbedService = (
             ? { ...document, videoUrl: media.url }
             : {
                 ...document,
+                ...imageDimensions(media),
                 imageUrl: media.posterUrl,
                 videoUrl: media.url,
               };

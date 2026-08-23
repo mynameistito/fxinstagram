@@ -1,7 +1,11 @@
 import { Effect } from "effect";
 
 import type { InstagramLocation } from "@/domain/instagram-url.ts";
-import type { InstagramPost, MetadataError } from "@/domain/media.ts";
+import type {
+  InstagramMedia,
+  InstagramPost,
+  MetadataError,
+} from "@/domain/media.ts";
 
 const provider = "instagram-public-html";
 const metaTag = /<meta\s+[^>]*>/giu;
@@ -15,6 +19,28 @@ const mediaHostSuffixes = [".cdninstagram.com", ".fbcdn.net"] as const;
 const normalizedMediaHost = "scontent.cdninstagram.com";
 const profilePictureUrl =
   /"profile_pic_url(?:_hd)?"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
+
+const positiveInteger = (value: string | undefined): number | undefined => {
+  if (value === undefined || !/^\d+$/u.test(value)) {
+    return undefined;
+  }
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number > 0 ? number : undefined;
+};
+
+const imageMedia = (
+  url: URL,
+  width: number | undefined,
+  height: number | undefined
+): Extract<InstagramMedia, { readonly type: "image" }> => {
+  const media = { type: "image" as const, url };
+  if (width !== undefined) {
+    return height === undefined
+      ? { ...media, width }
+      : { ...media, height, width };
+  }
+  return height === undefined ? media : { ...media, height };
+};
 
 const decodeHtml = (value: string): string =>
   value
@@ -128,11 +154,13 @@ export const parsePublicInstagramHtml = (
     return Effect.fail({ _tag: "ProviderResponseInvalid", provider });
   }
   const title = values.get("og:title") ?? values.get("twitter:title") ?? "";
+  const width = positiveInteger(values.get("og:image:width"));
+  const height = positiveInteger(values.get("og:image:height"));
   const profilePicture = profilePictureFrom(html);
   const post: InstagramPost = {
     canonicalUrl,
     caption: values.get("og:description") ?? values.get("description") ?? "",
-    media: [{ type: "image", url: imageUrl }],
+    media: [imageMedia(imageUrl, width, height)],
     shortcode: location.shortcode,
     username: usernameFrom(canonicalUrl, title),
   };

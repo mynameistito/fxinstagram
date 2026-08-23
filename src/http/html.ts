@@ -132,7 +132,15 @@ export const renderDocument = (document: EmbedDocument): string => {
       : meta("profile:image", document.authorIconUrl.toString()),
     document.imageUrl === undefined
       ? ""
-      : meta("og:image", document.imageUrl.toString()),
+      : [
+          meta("og:image", document.imageUrl.toString()),
+          document.imageWidth === undefined
+            ? ""
+            : meta("og:image:width", String(document.imageWidth)),
+          document.imageHeight === undefined
+            ? ""
+            : meta("og:image:height", String(document.imageHeight)),
+        ].join(""),
     document.videoUrl === undefined
       ? ""
       : [

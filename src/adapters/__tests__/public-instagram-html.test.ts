@@ -15,15 +15,17 @@ const location = Effect.runSync(
 
 describe("public Instagram HTML parser", () => {
   test("normalizes public Open Graph metadata", () => {
-    const html = `<!doctype html><meta content="summary_large_image" name="twitter:card"><meta property="og:title" content="&#064;alice on Instagram"><meta content="A &amp; B" property="og:description"><meta property="og:image" content="https://scontent.fakl1-4.fna.fbcdn.net/image.jpg?a=1&amp;b=2"><meta property="og:url" content="https://www.instagram.com/alice/reel/ABC/"><script>"profile_pic_url_hd":"https:\\/\\/scontent.fakl1-4.fna.fbcdn.net\\/profile.jpg"</script>`;
+    const html = `<!doctype html><meta content="summary_large_image" name="twitter:card"><meta property="og:title" content="&#064;alice on Instagram"><meta content="A &amp; B" property="og:description"><meta property="og:image" content="https://scontent.fakl1-4.fna.fbcdn.net/image.jpg?a=1&amp;b=2"><meta property="og:image:width" content="1080"><meta property="og:image:height" content="1350"><meta property="og:url" content="https://www.instagram.com/alice/reel/ABC/"><script>"profile_pic_url_hd":"https:\\/\\/scontent.fakl1-4.fna.fbcdn.net\\/profile.jpg"</script>`;
     const post = Effect.runSync(parsePublicInstagramHtml(html, location));
     expect(post).toEqual({
       canonicalUrl: new URL("https://www.instagram.com/alice/reel/ABC/"),
       caption: "A & B",
       media: [
         {
+          height: 1350,
           type: "image",
           url: new URL("https://scontent.cdninstagram.com/image.jpg?a=1&b=2"),
+          width: 1080,
         },
       ],
       profilePictureUrl: new URL(

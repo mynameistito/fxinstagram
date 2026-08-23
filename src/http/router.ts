@@ -156,9 +156,9 @@ const handleOembed = async (
   const embed = htmlResponse(resolved.document, resolved.status);
   const oEmbed = {
     html: await embed.text(),
-    provider_name: "Instagram",
-    provider_url: `${instagramOrigin}/`,
-    title: "Instagram embed",
+    provider_name: "fxinstagram",
+    provider_url: `${new URL(request.url).origin}/`,
+    title: "fxinstagram embed",
     type: "rich" as const,
     version: "1.0" as const,
   };

@@ -4,7 +4,10 @@ import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
 
 import { parseInstagramUrl } from "../../domain/instagram-url.ts";
-import { parsePublicInstagramHtml } from "../instagram/public-html.ts";
+import {
+  parsePublicInstagramHtml,
+  parsePublicInstagramVideo,
+} from "../instagram/public-html.ts";
 
 const location = Effect.runSync(
   parseInstagramUrl("https://instagram.com/reel/ABC")
@@ -44,5 +47,13 @@ describe("public Instagram HTML parser", () => {
         provider: "instagram-public-html",
       },
     });
+  });
+
+  test("extracts and normalizes nested embed video URLs", () => {
+    const embed = String.raw`<script>"video_url":"https:\\/\\/instagram.fakl1-3.fna.fbcdn.net\\/video.mp4?x=1\u002526y\u00253D2"</script>`;
+    expect(parsePublicInstagramVideo(embed)?.href).toBe(
+      "https://scontent.cdninstagram.com/video.mp4?x=1%26y%3D2"
+    );
+    expect(parsePublicInstagramVideo("<html></html>")).toBeUndefined();
   });
 });

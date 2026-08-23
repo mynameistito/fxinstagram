@@ -7,6 +7,8 @@ const provider = "instagram-public-html";
 const metaTag = /<meta\s+[^>]*>/giu;
 const attribute =
   /(?<name>[:\w-]+)\s*=\s*(?<quote>["'])(?<value>.*?)\k<quote>/giu;
+const escapedVideoUrl = /\\"video_url\\":\\"(?<value>(?:\\\\.|[^"\\])*)\\"/u;
+const plainVideoUrl = /"video_url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 
 const decodeHtml = (value: string): string =>
   value
@@ -52,6 +54,18 @@ const safeUrl = (value: string | undefined): URL | undefined => {
   }
 };
 
+const decodeNestedJsonString = (value: string): string | undefined => {
+  let decoded = value;
+  for (let depth = 0; depth < 2 && decoded.includes("\\"); depth += 1) {
+    try {
+      decoded = JSON.parse(`"${decoded}"`);
+    } catch {
+      return undefined;
+    }
+  }
+  return decoded;
+};
+
 const usernameFrom = (canonicalUrl: URL, title: string): string => {
   const canonicalUsername = canonicalUrl.pathname
     .split("/")
@@ -88,4 +102,19 @@ export const parsePublicInstagramHtml = (
     shortcode: location.shortcode,
     username: usernameFrom(canonicalUrl, title),
   });
+};
+
+/** Extract and normalize a direct video URL from Instagram's embed document. */
+export const parsePublicInstagramVideo = (html: string): URL | undefined => {
+  const match = escapedVideoUrl.exec(html) ?? plainVideoUrl.exec(html);
+  const value = match?.groups?.value;
+  if (value === undefined) {
+    return undefined;
+  }
+  const url = safeUrl(decodeNestedJsonString(value));
+  if (url === undefined) {
+    return undefined;
+  }
+  url.hostname = "scontent.cdninstagram.com";
+  return url;
 };

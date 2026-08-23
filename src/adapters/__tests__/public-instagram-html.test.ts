@@ -1,0 +1,48 @@
+// oxlint-disable vitest/prefer-importing-vitest-globals
+import { describe, expect, test } from "bun:test";
+
+import { Effect } from "effect";
+
+import { parseInstagramUrl } from "../../domain/instagram-url.ts";
+import { parsePublicInstagramHtml } from "../instagram/public-html.ts";
+
+const location = Effect.runSync(
+  parseInstagramUrl("https://instagram.com/reel/ABC")
+);
+
+describe("public Instagram HTML parser", () => {
+  test("normalizes public Open Graph metadata", () => {
+    const html = `<!doctype html><meta content="summary_large_image" name="twitter:card"><meta property="og:title" content="&#064;alice on Instagram"><meta content="A &amp; B" property="og:description"><meta property="og:image" content="https://scontent.cdninstagram.com/image.jpg?a=1&amp;b=2"><meta property="og:url" content="https://www.instagram.com/alice/reel/ABC/">`;
+    const post = Effect.runSync(parsePublicInstagramHtml(html, location));
+    expect(post).toEqual({
+      canonicalUrl: new URL("https://www.instagram.com/alice/reel/ABC/"),
+      caption: "A & B",
+      media: [
+        {
+          type: "image",
+          url: new URL("https://scontent.cdninstagram.com/image.jpg?a=1&b=2"),
+        },
+      ],
+      shortcode: "ABC",
+      username: "alice",
+    });
+  });
+
+  test("rejects documents without canonical media metadata", async () => {
+    const result = await Effect.runPromise(
+      Effect.result(
+        parsePublicInstagramHtml(
+          '<meta property="og:title" content="Login">',
+          location
+        )
+      )
+    );
+    expect(result).toMatchObject({
+      _tag: "Failure",
+      failure: {
+        _tag: "ProviderResponseInvalid",
+        provider: "instagram-public-html",
+      },
+    });
+  });
+});

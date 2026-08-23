@@ -45,22 +45,19 @@ export const renderIndexDocument = (): string => `<!doctype html>
     <main id="main-content" class="mx-0 max-w-5xl px-7 py-8 sm:px-10 sm:py-10 lg:px-14 lg:py-12">
       <header>
         <h1 class="text-5xl font-black tracking-[-0.07em] text-white sm:text-6xl lg:text-7xl">FXInstagram</h1>
-        <p class="mt-5 text-lg font-bold leading-7 text-zinc-100 sm:text-xl">A better way to embed Instagram posts on Discord, Telegram, and more.</p>
+        <p class="mt-5 text-lg font-bold leading-7 text-zinc-100 sm:text-xl">Server-rendered Instagram previews for Discord and other chat clients.</p>
       </header>
       <section class="mt-7" aria-labelledby="features-title">
         <h2 id="features-title" class="text-2xl font-bold tracking-tight text-white">Features <span aria-hidden="true">🌟</span></h2>
         <ul class="mt-3 list-disc space-y-0.5 pl-7 text-base leading-6 text-zinc-300">
-          <li>Displays likes and comments count</li>
-          <li>Natively embeds images and videos</li>
-          <li>Removes tracking on redirects</li>
-          <li>Displays user verification status</li>
+          <li>Embeds images and videos</li>
         </ul>
       </section>
       <section class="mt-7" aria-labelledby="usage-title">
         <h2 id="usage-title" class="text-2xl font-bold tracking-tight text-white">Usage:</h2>
         <div class="mt-3 space-y-0.5 text-base leading-6 text-zinc-300">
           <p>Replace <code class="font-mono text-sm text-zinc-100">https://instagram.com</code> with <code class="font-mono text-sm text-lime-300">https://ig.mynameistito.com</code> and keep the path.</p>
-          <p>FXInstagram is a free project that provides a better way to embed Instagram posts on Discord, Telegram, and more.</p>
+          <p>FXInstagram is a free project that provides server-rendered previews for Discord and other chat clients.</p>
           <p>Built by the community. You can support the project at <a class="text-lime-300 underline decoration-lime-300/50 underline-offset-2 hover:text-lime-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300" href="https://buymeacoffee.com/mynameistito">Buy Me a Coffee</a>.</p>
         </div>
       </section>

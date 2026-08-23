@@ -1,7 +1,11 @@
 import { Effect } from "effect";
 
 import type { InstagramLocation } from "@/domain/instagram-url.ts";
-import type { InstagramPost, MetadataError } from "@/domain/media.ts";
+import type {
+  InstagramMedia,
+  InstagramPost,
+  MetadataError,
+} from "@/domain/media.ts";
 
 const provider = "instagram-public-html";
 const metaTag = /<meta\s+[^>]*>/giu;
@@ -16,6 +20,28 @@ const normalizedMediaHost = "scontent.cdninstagram.com";
 const profilePictureUrl =
   /"profile_pic_url(?:_hd)?"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 
+const positiveInteger = (value: string | undefined): number | undefined => {
+  if (value === undefined || !/^\d+$/u.test(value)) {
+    return undefined;
+  }
+  const number = Number(value);
+  return Number.isSafeInteger(number) && number > 0 ? number : undefined;
+};
+
+const imageMedia = (
+  url: URL,
+  width: number | undefined,
+  height: number | undefined
+): Extract<InstagramMedia, { readonly type: "image" }> => {
+  const media = { type: "image" as const, url };
+  if (width !== undefined) {
+    return height === undefined
+      ? { ...media, width }
+      : { ...media, height, width };
+  }
+  return height === undefined ? media : { ...media, height };
+};
+
 const decodeHtml = (value: string): string =>
   value
     .replaceAll("&amp;", "&")
@@ -25,8 +51,8 @@ const decodeHtml = (value: string): string =>
     .replaceAll("&lt;", "<")
     .replaceAll("&gt;", ">");
 
-const metadata = (html: string): ReadonlyMap<string, string> => {
-  const values = new Map<string, string>();
+const metadata = (html: string): ReadonlyMap<string, readonly string[]> => {
+  const values = new Map<string, string[]>();
   for (const tag of html.match(metaTag) ?? []) {
     const attributes = new Map<string, string>();
     for (const match of tag.matchAll(attribute)) {
@@ -37,12 +63,20 @@ const metadata = (html: string): ReadonlyMap<string, string> => {
     }
     const key = attributes.get("property") ?? attributes.get("name");
     const content = attributes.get("content");
-    if (key !== undefined && content !== undefined && !values.has(key)) {
-      values.set(key, content);
+    if (key !== undefined && content !== undefined) {
+      const entries = values.get(key) ?? [];
+      entries.push(content);
+      values.set(key, entries);
     }
   }
   return values;
 };
+
+const metadataValue = (
+  values: ReadonlyMap<string, readonly string[]>,
+  key: string,
+  index = 0
+): string | undefined => values.get(key)?.[index] ?? values.get(key)?.[0];
 
 const safeUrl = (value: string | undefined): URL | undefined => {
   if (value === undefined) {
@@ -118,21 +152,40 @@ export const parsePublicInstagramHtml = (
   location: InstagramLocation
 ): Effect.Effect<InstagramPost, MetadataError> => {
   const values = metadata(html);
-  const canonicalUrl = safeUrl(values.get("og:url"));
-  const rawImageUrl = safeUrl(
-    values.get("og:image") ?? values.get("twitter:image")
-  );
-  const imageUrl =
-    rawImageUrl === undefined ? undefined : normalizeMediaUrl(rawImageUrl);
-  if (canonicalUrl === undefined || imageUrl === undefined) {
+  const canonicalUrl = safeUrl(metadataValue(values, "og:url"));
+  const imageValues = values.get("og:image") ?? [
+    metadataValue(values, "twitter:image"),
+  ];
+  const imageUrls = imageValues.flatMap((value, index) => {
+    const rawUrl = safeUrl(value);
+    const imageUrl =
+      rawUrl === undefined ? undefined : normalizeMediaUrl(rawUrl);
+    if (imageUrl === undefined) {
+      return [];
+    }
+    return [
+      imageMedia(
+        imageUrl,
+        positiveInteger(metadataValue(values, "og:image:width", index)),
+        positiveInteger(metadataValue(values, "og:image:height", index))
+      ),
+    ];
+  });
+  if (canonicalUrl === undefined || imageUrls.length === 0) {
     return Effect.fail({ _tag: "ProviderResponseInvalid", provider });
   }
-  const title = values.get("og:title") ?? values.get("twitter:title") ?? "";
+  const title =
+    metadataValue(values, "og:title") ??
+    metadataValue(values, "twitter:title") ??
+    "";
   const profilePicture = profilePictureFrom(html);
   const post: InstagramPost = {
     canonicalUrl,
-    caption: values.get("og:description") ?? values.get("description") ?? "",
-    media: [{ type: "image", url: imageUrl }],
+    caption:
+      metadataValue(values, "og:description") ??
+      metadataValue(values, "description") ??
+      "",
+    media: imageUrls,
     shortcode: location.shortcode,
     username: usernameFrom(canonicalUrl, title),
   };

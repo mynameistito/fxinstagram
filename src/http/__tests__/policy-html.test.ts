@@ -40,13 +40,17 @@ describe("HTTP policies and projection", () => {
       card: "summary_large_image",
       description: "line <script>alert('x')</script> & \"quoted\"",
       footerText: "fxinstagram",
+      imageHeight: 1350,
       imageUrl: new URL("https://cdn.example/image.jpg?a=1&b=2"),
+      imageWidth: 1080,
       title: "<unsafe> & title",
     });
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&quot;quoted&quot;");
     expect(html).not.toContain("<script>");
     expect(html).toContain('property="og:site_name" content="fxinstagram"');
+    expect(html).toContain('property="og:image:width" content="1080"');
+    expect(html).toContain('property="og:image:height" content="1350"');
     expect(html).toContain('name="author" content="alice"');
     expect(html).toContain('property="profile:username" content="alice"');
     expect(html).toContain(

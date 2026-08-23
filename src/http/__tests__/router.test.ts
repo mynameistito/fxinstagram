@@ -9,7 +9,14 @@ import { withTestServer } from "../../../__tests__/test-server.ts";
 const fixture = {
   canonicalUrl: "https://instagram.com/p/ABC",
   caption: "caption <unsafe> & quoted",
-  media: [{ type: "image", url: "https://cdn.example/image.jpg" }],
+  media: [
+    {
+      height: 1350,
+      type: "image",
+      url: "https://cdn.example/image.jpg",
+      width: 1080,
+    },
+  ],
   username: "alice",
 };
 
@@ -52,6 +59,21 @@ describe("real Bun HTTP router", () => {
         expect(page.headers.get("x-content-type-options")).toBe("nosniff");
         expect(body).toContain("&lt;unsafe&gt;");
         expect(body).not.toContain("<unsafe>");
+        expect(body).toContain("alice on fxinstagram");
+        expect(body).toContain('property="og:image:width" content="1080"');
+        expect(body).toContain('property="og:image:height" content="1350"');
+
+        const oembed = await fetch(
+          `${server.url}oembed?url=https%3A%2F%2Finstagram.com%2Fp%2FABC`,
+          { headers: { "user-agent": "Discordbot" } }
+        );
+        // SAFETY: The test server returns the fixed oEmbed shape for this request.
+        const oembedBody = (await oembed.json()) as {
+          provider_name: string;
+          title: string;
+        };
+        expect(oembedBody.provider_name).toBe("fxinstagram");
+        expect(oembedBody.title).toBe("fxinstagram embed");
 
         const media = await fetch(`${server.url}images/ABC/0`, {
           redirect: "manual",

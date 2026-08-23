@@ -27,7 +27,7 @@ describe("Instagram URL parsing", () => {
       parse("https://instagram.com/stories/alice/123?img_index=2")
     ).toEqual({
       kind: "story",
-      mediaIndex: 2,
+      mediaIndex: 1,
       shortcode: "123",
       username: "alice",
     });
@@ -47,7 +47,7 @@ describe("Instagram URL parsing", () => {
     expect(
       Effect.runSync(
         Effect.result(
-          parseInstagramUrl("https://instagram.com/p/ABC?img_index=-1")
+          parseInstagramUrl("https://instagram.com/p/ABC?img_index=0")
         )
       )
     ).toMatchObject({

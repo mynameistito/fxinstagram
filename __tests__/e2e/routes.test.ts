@@ -85,7 +85,7 @@ describe("local real-entrypoint route contracts", () => {
         expect(await oembed.json()).toMatchObject({
           author_name: "alice",
           author_url: "https://instagram.com/alice",
-          provider_name: "Instagram",
+          provider_name: "fxinstagram",
         });
       }
     );

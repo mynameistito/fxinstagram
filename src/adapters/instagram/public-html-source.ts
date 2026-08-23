@@ -20,11 +20,20 @@ export type InstagramFetch = (
   init?: RequestInit
 ) => Promise<Response>;
 
-const requestUrl = (location: InstagramLocation): URL =>
-  new URL(`${instagramLocationPath(location)}/`, upstreamOrigin);
+const requestUrl = (location: InstagramLocation): URL => {
+  const url = new URL(`${instagramLocationPath(location)}/`, upstreamOrigin);
+  url.searchParams.set("img_index", String(location.mediaIndex + 1));
+  return url;
+};
 
-const embedUrl = (location: InstagramLocation): URL =>
-  new URL(`/p/${location.shortcode}/embed/captioned/`, upstreamOrigin);
+const embedUrl = (location: InstagramLocation): URL => {
+  const url = new URL(
+    `/p/${location.shortcode}/embed/captioned/`,
+    upstreamOrigin
+  );
+  url.searchParams.set("img_index", String(location.mediaIndex + 1));
+  return url;
+};
 
 const retryAfterMs = (response: Response): number | undefined => {
   const value = response.headers.get("retry-after");
@@ -177,7 +186,7 @@ export const makePublicInstagramSource = (
       return videoUrl === undefined
         ? post
         : (() => {
-            const posterUrl = post.media[0]?.url;
+            const posterUrl = post.media[location.mediaIndex]?.url;
             const video = { type: "video" as const, url: videoUrl };
             return posterUrl === undefined
               ? { ...post, media: [video] }

@@ -24,10 +24,57 @@ describe("public Instagram metadata source", () => {
     });
     const post = await Effect.runPromise(source.find(location));
     expect(requested.map((url) => url.href)).toEqual([
-      "https://www.instagram.com/reel/ABC/",
-      "https://www.instagram.com/p/ABC/embed/captioned/",
+      "https://www.instagram.com/reel/ABC/?img_index=1",
+      "https://www.instagram.com/p/ABC/embed/captioned/?img_index=1",
     ]);
     expect(post.username).toBe("alice");
+  });
+
+const carouselLocation = Effect.runSync(
+  parseInstagramUrl("https://instagram.com/p/ABC?img_index=1")
+);
+
+  test("passes a requested carousel index to upstream page and embed requests", async () => {
+    const requested: string[] = [];
+    const source = makePublicInstagramSource((input) => {
+      requested.push(input.toString());
+      return Promise.resolve(
+        new Response(html, { headers: { "content-type": "text/html" } })
+      );
+    });
+    await Effect.runPromise(source.find(carouselLocation));
+    expect(requested.slice(0, 2)).toEqual([
+      "https://www.instagram.com/p/ABC/?img_index=1",
+      "https://www.instagram.com/p/ABC/embed/captioned/?img_index=1",
+    ]);
+  });
+
+  test("uses the requested carousel image as a video poster", async () => {
+    const requestedLocation = Effect.runSync(
+      parseInstagramUrl("https://instagram.com/p/ABC?img_index=2")
+    );
+    const carouselHtml = `<!doctype html><meta property="og:title" content="@alice on Instagram"><meta property="og:image" content="https://scontent.cdninstagram.com/first.jpg"><meta property="og:image" content="https://scontent.cdninstagram.com/second.jpg"><meta property="og:url" content="https://www.instagram.com/p/ABC/">`;
+    const embed = String.raw`<script>"video_url":"https:\\/\\/instagram.example.fbcdn.net\\/video.mp4"</script>`;
+    const source = makePublicInstagramSource((input) =>
+      Promise.resolve(
+        new Response(
+          input.toString().includes("/embed/") ? embed : carouselHtml,
+          {
+            headers: { "content-type": "text/html" },
+          }
+        )
+      )
+    );
+
+    const post = await Effect.runPromise(source.find(requestedLocation));
+
+    expect(post.media).toEqual([
+      {
+        posterUrl: new URL("https://scontent.cdninstagram.com/second.jpg"),
+        type: "video",
+        url: new URL("https://scontent.cdninstagram.com/video.mp4"),
+      },
+    ]);
   });
 
   test("follows only bounded Instagram HTTPS redirects", async () => {
@@ -35,10 +82,12 @@ describe("public Instagram metadata source", () => {
     const source = makePublicInstagramSource((input) => {
       const url = input.toString();
       requested.push(url);
-      if (url === "https://www.instagram.com/reel/ABC/") {
+      if (url === "https://www.instagram.com/reel/ABC/?img_index=1") {
         return Promise.resolve(
           new Response(null, {
-            headers: { location: "https://instagram.com/reel/ABC/" },
+            headers: {
+              location: "https://instagram.com/reel/ABC/?img_index=1",
+            },
             status: 302,
           })
         );
@@ -49,8 +98,8 @@ describe("public Instagram metadata source", () => {
     });
     await Effect.runPromise(source.find(location));
     expect(requested.slice(0, 2)).toEqual([
-      "https://www.instagram.com/reel/ABC/",
-      "https://instagram.com/reel/ABC/",
+      "https://www.instagram.com/reel/ABC/?img_index=1",
+      "https://instagram.com/reel/ABC/?img_index=1",
     ]);
 
     const unsafe = makePublicInstagramSource(() =>

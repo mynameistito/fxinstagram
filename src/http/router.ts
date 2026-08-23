@@ -193,7 +193,7 @@ const handleMedia = async (
   const parsed = await Effect.runPromise(
     Effect.result(
       parseInstagramUrl(
-        `${instagramOrigin}/p/${shortcode}?img_index=${mediaIndex}`
+        `${instagramOrigin}/p/${shortcode}?img_index=${Number(mediaIndex) + 1}`
       )
     )
   );

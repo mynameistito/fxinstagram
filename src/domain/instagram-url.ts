@@ -54,10 +54,10 @@ const parseIndex = (
   if (value === null || value === "") {
     return Effect.succeed(0);
   }
-  if (!/^(?:0|[1-9][0-9]*)$/u.test(value)) {
+  if (!/^[1-9][0-9]*$/u.test(value)) {
     return Effect.fail({ _tag: "InvalidMediaIndex" });
   }
-  const index = Number(value);
+  const index = Number(value) - 1;
   return Number.isSafeInteger(index)
     ? Effect.succeed(index)
     : Effect.fail({ _tag: "InvalidMediaIndex" });

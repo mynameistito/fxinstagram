@@ -1,4 +1,4 @@
-import type { EmbedApplicationError } from "../application/embed.ts";
+import type { EmbedApplicationError } from "@/application/embed.ts";
 
 export type RequestAudience = "bot" | "human";
 

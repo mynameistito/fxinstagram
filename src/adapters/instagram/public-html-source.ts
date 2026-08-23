@@ -1,15 +1,12 @@
 import { Effect } from "effect";
 
-import type { InstagramLocation } from "../../domain/instagram-url.ts";
-import { instagramLocationPath } from "../../domain/instagram-url.ts";
-import type {
-  InstagramMetadataSource,
-  MetadataError,
-} from "../../domain/media.ts";
 import {
   parsePublicInstagramHtml,
   parsePublicInstagramVideo,
-} from "./public-html.ts";
+} from "@/adapters/instagram/public-html.ts";
+import type { InstagramLocation } from "@/domain/instagram-url.ts";
+import { instagramLocationPath } from "@/domain/instagram-url.ts";
+import type { InstagramMetadataSource, MetadataError } from "@/domain/media.ts";
 
 const maxResponseBytes = 1_048_576;
 const provider = "instagram-public-html";

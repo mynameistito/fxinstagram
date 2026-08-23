@@ -3,8 +3,8 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { parseMetadataConfig } from "../config.ts";
-import { metadataCacheKey } from "../metadata-key.ts";
+import { parseMetadataConfig } from "@/application/config.ts";
+import { metadataCacheKey } from "@/application/metadata-key.ts";
 
 describe("metadata configuration and cache identity", () => {
   test("parses safe typed configuration and redacts credentials", () => {

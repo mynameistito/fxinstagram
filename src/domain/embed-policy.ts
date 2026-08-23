@@ -1,7 +1,7 @@
 import { Effect } from "effect";
 
-import type { EmbedRequest } from "./embed-request.ts";
-import type { InstagramMedia, MediaSelection } from "./media.ts";
+import type { EmbedRequest } from "@/domain/embed-request.ts";
+import type { InstagramMedia, MediaSelection } from "@/domain/media.ts";
 
 /** The mutually exclusive embed projections. */
 export type EmbedMode = "standard" | "direct" | "gallery";

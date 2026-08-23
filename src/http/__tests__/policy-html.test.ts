@@ -1,9 +1,9 @@
 import { describe, expect, test } from "bun:test";
 
-import type { EmbedService } from "../../application/embed.ts";
-import { renderDocument, renderIndexDocument } from "../html.ts";
-import { classifyUserAgent, statusForError } from "../policy.ts";
-import { makeRouter } from "../router.ts";
+import type { EmbedService } from "@/application/embed.ts";
+import { renderDocument, renderIndexDocument } from "@/http/html.ts";
+import { classifyUserAgent, statusForError } from "@/http/policy.ts";
+import { makeRouter } from "@/http/router.ts";
 
 // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("HTTP policies and projection", () => {
@@ -81,8 +81,9 @@ describe("HTTP policies and projection", () => {
   test("renders an accessible public index page with project links", () => {
     const html = renderIndexDocument();
     expect(html).toContain('<html lang="en">');
-    expect(html).toContain('src="https://cdn.tailwindcss.com/3.4.17"');
-    expect(html).toContain("bg-zinc-950");
+    expect(html).not.toContain("cdn.tailwindcss.com");
+    expect(html).toContain("<style>");
+    expect(html).toContain("background: #09090b");
     expect(html).toContain("FXInstagram");
     expect(html).toContain("Server-rendered Instagram previews for Discord");
     expect(html).toContain("Embeds images and videos");
@@ -103,8 +104,8 @@ describe("HTTP policies and projection", () => {
     const router = makeRouter({} as EmbedService);
     const response = await router(new Request("https://example.com/"));
     expect(response.status).toBe(200);
-    expect(response.headers.get("content-security-policy")).toContain(
-      "script-src https://cdn.tailwindcss.com"
+    expect(response.headers.get("content-security-policy")).toBe(
+      "default-src 'none'; style-src 'unsafe-inline'; base-uri 'none'"
     );
     expect(await response.text()).toContain("Usage:");
   });

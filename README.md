@@ -29,8 +29,10 @@ For a `dd`-style replacement, replace the Instagram hostname with the deployed f
 
 ```sh
 bun install
-bun run index.ts
+bun run start
 ```
+
+For Alchemy development mode, run `bun run dev` instead. This is separate from the direct local HTTP server and may require Alchemy-specific configuration.
 
 Copy `.env.example` to `.env` when overriding local defaults. Configuration names are `PUBLIC_ORIGIN`, `ALLOWED_MEDIA_HOSTS`, `METADATA_TIMEOUT_MS`, `METADATA_CACHE_TTL_SECONDS`, and optional `METADATA_PROVIDER_TOKEN`. Local defaults use port `8787`, HTTP links with `127.0.0.1`, the `cdn.example` media host, a 1-second metadata timeout, and a 60-second cache TTL. The local provider is deterministic fixture JSON; no live Instagram request is made.
 

@@ -1,22 +1,22 @@
 import { Effect } from "effect";
 
-import type { EmbedService } from "../application/embed.ts";
-import type { EmbedRequest } from "../domain/embed-request.ts";
-import { parseEmbedRequest } from "../domain/embed-request.ts";
-import { parseInstagramUrl } from "../domain/instagram-url.ts";
-import { htmlResponse, indexResponse } from "./html.ts";
+import type { EmbedService } from "@/application/embed.ts";
+import type { EmbedRequest } from "@/domain/embed-request.ts";
+import { parseEmbedRequest } from "@/domain/embed-request.ts";
+import { parseInstagramUrl } from "@/domain/instagram-url.ts";
+import { htmlResponse, indexResponse } from "@/http/html.ts";
 import {
   classifyUserAgent,
   errorDescription,
   statusForError,
-} from "./policy.ts";
-import { defaultRateLimit } from "./telemetry.ts";
+} from "@/http/policy.ts";
+import { defaultRateLimit } from "@/http/telemetry.ts";
 import type {
   HttpOperation,
   HttpTelemetry,
   RateLimitConfig,
-} from "./telemetry.ts";
-import { wellKnownResponse } from "./well-known.ts";
+} from "@/http/telemetry.ts";
+import { wellKnownResponse } from "@/http/well-known.ts";
 
 const instagramOrigin = "https://instagram.com";
 const maxRequestUrlLength = 2048;

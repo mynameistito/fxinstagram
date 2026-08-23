@@ -177,6 +177,12 @@ export const makePublicInstagramSource = (
       const videoUrl = parsePublicInstagramVideo(embed.success);
       return videoUrl === undefined
         ? post
-        : { ...post, media: [{ type: "video", url: videoUrl }] };
+        : (() => {
+            const posterUrl = post.media[0]?.url;
+            const video = { type: "video" as const, url: videoUrl };
+            return posterUrl === undefined
+              ? { ...post, media: [video] }
+              : { ...post, media: [{ ...video, posterUrl }] };
+          })();
     }),
 });

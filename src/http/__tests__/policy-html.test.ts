@@ -33,14 +33,14 @@ describe("HTTP policies and projection", () => {
 
   test("escapes dynamic text and URL attributes", () => {
     const html = renderDocument({
-      canonicalUrl: new URL("https://instagram.com/p/ABC?a=1&b=2"),
-      card: "summary_large_image",
-      description: "line <script>alert('x')</script> & \"quoted\"",
-      imageUrl: new URL("https://cdn.example/image.jpg?a=1&b=2"),
       authorIconUrl: new URL("https://cdn.example/profile.jpg"),
       authorName: "alice",
       authorUrl: new URL("https://instagram.com/alice"),
+      canonicalUrl: new URL("https://instagram.com/p/ABC?a=1&b=2"),
+      card: "summary_large_image",
+      description: "line <script>alert('x')</script> & \"quoted\"",
       footerText: "fxinstagram",
+      imageUrl: new URL("https://cdn.example/image.jpg?a=1&b=2"),
       title: "<unsafe> & title",
     });
     expect(html).toContain("&lt;script&gt;");

@@ -29,7 +29,7 @@ const workerEnvironment = {
     Config.withDefault("")
   ),
   METADATA_TIMEOUT_MS: Config.string("METADATA_TIMEOUT_MS").pipe(
-    Config.withDefault("1000")
+    Config.withDefault("5000")
   ),
   PUBLIC_ORIGIN: Cloudflare.Worker.URL,
 };

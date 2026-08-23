@@ -6,7 +6,10 @@ import type {
   InstagramMetadataSource,
   MetadataError,
 } from "../../domain/media.ts";
-import { parsePublicInstagramHtml } from "./public-html.ts";
+import {
+  parsePublicInstagramHtml,
+  parsePublicInstagramVideo,
+} from "./public-html.ts";
 
 const maxResponseBytes = 1_048_576;
 const provider = "instagram-public-html";
@@ -20,6 +23,9 @@ export type InstagramFetch = (
 
 const requestUrl = (location: InstagramLocation): URL =>
   new URL(`${instagramLocationPath(location)}/`, upstreamOrigin);
+
+const embedUrl = (location: InstagramLocation): URL =>
+  new URL(`/p/${location.shortcode}/embed/captioned/`, upstreamOrigin);
 
 const retryAfterMs = (response: Response): number | undefined => {
   const value = response.headers.get("retry-after");
@@ -101,28 +107,45 @@ const responseBody = (
   });
 };
 
+const fetchPage = (
+  fetcher: InstagramFetch,
+  url: URL,
+  location: InstagramLocation
+): Effect.Effect<string, MetadataError> =>
+  Effect.tryPromise({
+    catch: (cause): MetadataError => ({
+      _tag: "ProviderUnavailable",
+      cause,
+      provider,
+    }),
+    try: (signal) =>
+      fetcher(url, {
+        headers: {
+          Accept: "text/html",
+          "User-Agent": "Mozilla/5.0 (compatible; fxinstagram/1.0)",
+        },
+        redirect: "error",
+        signal,
+      }),
+  }).pipe(Effect.flatMap((response) => responseBody(response, location)));
+
 /** Create the live, credential-free Instagram public HTML metadata adapter. */
 export const makePublicInstagramSource = (
   fetcher: InstagramFetch = globalThis.fetch
 ): InstagramMetadataSource => ({
   find: (location) =>
-    Effect.tryPromise({
-      catch: (cause): MetadataError => ({
-        _tag: "ProviderUnavailable",
-        cause,
-        provider,
-      }),
-      try: (signal) =>
-        fetcher(requestUrl(location), {
-          headers: {
-            Accept: "text/html",
-            "User-Agent": "Mozilla/5.0 (compatible; fxinstagram/1.0)",
-          },
-          redirect: "error",
-          signal,
-        }),
-    }).pipe(
-      Effect.flatMap((response) => responseBody(response, location)),
-      Effect.flatMap((html) => parsePublicInstagramHtml(html, location))
-    ),
+    Effect.gen(function* findPublicInstagramMetadata() {
+      const html = yield* fetchPage(fetcher, requestUrl(location), location);
+      const post = yield* parsePublicInstagramHtml(html, location);
+      const embed = yield* Effect.result(
+        fetchPage(fetcher, embedUrl(location), location)
+      );
+      if (embed._tag === "Failure") {
+        return post;
+      }
+      const videoUrl = parsePublicInstagramVideo(embed.success);
+      return videoUrl === undefined
+        ? post
+        : { ...post, media: [{ type: "video", url: videoUrl }] };
+    }),
 });

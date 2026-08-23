@@ -13,9 +13,9 @@ const html = `<!doctype html><meta property="og:title" content="@alice on Instag
 
 describe("public Instagram metadata source", () => {
   test("requests the canonical public page and parses its response", async () => {
-    let requested: URL | undefined;
+    const requested: URL[] = [];
     const source = makePublicInstagramSource((input, init) => {
-      requested = new URL(input.toString());
+      requested.push(new URL(input.toString()));
       expect(init?.redirect).toBe("error");
       expect(init?.signal).toBeInstanceOf(AbortSignal);
       return Promise.resolve(
@@ -23,8 +23,29 @@ describe("public Instagram metadata source", () => {
       );
     });
     const post = await Effect.runPromise(source.find(location));
-    expect(requested?.href).toBe("https://www.instagram.com/reel/ABC/");
+    expect(requested.map((url) => url.href)).toEqual([
+      "https://www.instagram.com/reel/ABC/",
+      "https://www.instagram.com/p/ABC/embed/captioned/",
+    ]);
     expect(post.username).toBe("alice");
+  });
+
+  test("prefers a playable video from the embed document", async () => {
+    const embed = String.raw`<script>"video_url":"https:\\/\\/instagram.example.fbcdn.net\\/video.mp4"</script>`;
+    const source = makePublicInstagramSource((input) =>
+      Promise.resolve(
+        new Response(input.toString().includes("/embed/") ? embed : html, {
+          headers: { "content-type": "text/html" },
+        })
+      )
+    );
+    const post = await Effect.runPromise(source.find(location));
+    expect(post.media).toEqual([
+      {
+        type: "video",
+        url: new URL("https://scontent.cdninstagram.com/video.mp4"),
+      },
+    ]);
   });
 
   test("maps not found and rate-limited responses", async () => {

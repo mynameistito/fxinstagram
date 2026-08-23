@@ -20,7 +20,7 @@ const isAlchemyDev = ["1", "true"].includes(
 
 const workerEnvironment = {
   ALLOWED_MEDIA_HOSTS: Config.string("ALLOWED_MEDIA_HOSTS").pipe(
-    Config.withDefault("cdn.example")
+    Config.withDefault("scontent.cdninstagram.com")
   ),
   METADATA_CACHE_TTL_SECONDS: Config.string("METADATA_CACHE_TTL_SECONDS").pipe(
     Config.withDefault("60")

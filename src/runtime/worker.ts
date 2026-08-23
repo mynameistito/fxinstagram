@@ -1,5 +1,6 @@
 import { Effect } from "effect";
 
+import { makePublicInstagramSource } from "../adapters/instagram/public-html-source.ts";
 import { makeEmbedService } from "../application/embed.ts";
 import type { EmbedServiceConfig } from "../application/embed.ts";
 import { makeRouter } from "../http/router.ts";
@@ -31,8 +32,8 @@ const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
   const metadata = {
     cacheMaxEntries: 256,
     cacheTtlMs: config.success.metadataCacheTtlSeconds * 1000,
-    provider: "fixture-json" as const,
-    providerUrl: new URL("https://fixtures.invalid"),
+    provider: "instagram-public-html" as const,
+    providerUrl: new URL("https://www.instagram.com"),
     requestTimeoutMs: config.success.metadataTimeoutMs,
     retryLimit: 0,
   };
@@ -45,7 +46,11 @@ const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
       mediaHosts: config.success.allowedMediaHosts,
       origin: config.success.publicOrigin,
     } satisfies EmbedServiceConfig).pipe(
-      Effect.provide(metadataLayer(metadataConfig, new Map()))
+      Effect.provide(
+        metadataLayer(metadataConfig, new Map(), {
+          source: makePublicInstagramSource(),
+        })
+      )
     )
   );
   return makeRouter(service);

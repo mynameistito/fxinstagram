@@ -2,7 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { bootstrap } from "../src/runtime/bootstrap.ts";
+import { bootstrap } from "@/runtime/bootstrap.ts";
 
 // oxlint-disable-next-line vitest/prefer-importing-vitest-globals -- Bun is the configured test runner.
 describe("application bootstrap", () => {

@@ -4,9 +4,9 @@ import { describe, expect, test } from "bun:test";
 import { Effect } from "effect";
 import type { Duration } from "effect";
 
-import type { MetadataCache } from "../../src/application/cache.ts";
-import type { InstagramMetadataSource } from "../../src/domain/media.ts";
-import { startServer } from "../../src/runtime/server.ts";
+import type { MetadataCache } from "@/application/cache.ts";
+import type { InstagramMetadataSource } from "@/domain/media.ts";
+import { startServer } from "@/runtime/server.ts";
 
 const validPost = {
   canonicalUrl: new URL("https://instagram.com/p/ABC"),

@@ -3,7 +3,7 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
-import { parseAppConfig } from "../config.ts";
+import { parseAppConfig } from "@/runtime/config.ts";
 
 const valid = {
   ALLOWED_MEDIA_HOSTS: "cdn.example,media.example",

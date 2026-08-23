@@ -30,9 +30,9 @@ describe("public Instagram metadata source", () => {
     expect(post.username).toBe("alice");
   });
 
-const carouselLocation = Effect.runSync(
-  parseInstagramUrl("https://instagram.com/p/ABC?img_index=1")
-);
+  const carouselLocation = Effect.runSync(
+    parseInstagramUrl("https://instagram.com/p/ABC?img_index=1")
+  );
 
   test("passes a requested carousel index to upstream page and embed requests", async () => {
     const requested: string[] = [];

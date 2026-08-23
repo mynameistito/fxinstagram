@@ -16,8 +16,10 @@ jobs:
             command: bun run check
           - name: Typecheck
             command: bun run typecheck
-          - name: Test
-            command: bun run test
+          - name: Unit tests
+            command: bun run test:unit
+          - name: E2E tests
+            command: bun run test:e2e
           - name: Validate Alchemy stack
             command: bun run alchemy:check
     name: ${{ matrix.name }}

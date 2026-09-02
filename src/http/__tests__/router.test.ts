@@ -59,7 +59,7 @@ describe("real Bun HTTP router", () => {
         expect(page.headers.get("x-content-type-options")).toBe("nosniff");
         expect(body).toContain("&lt;unsafe&gt;");
         expect(body).not.toContain("<unsafe>");
-        expect(body).toContain("alice on fxinstagram");
+        expect(body).toContain("alice on instagram");
         expect(body).toContain('property="og:image:width" content="1080"');
         expect(body).toContain('property="og:image:height" content="1350"');
 

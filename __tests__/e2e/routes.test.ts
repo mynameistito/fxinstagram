@@ -82,10 +82,13 @@ describe("local real-entrypoint route contracts", () => {
         const oembedUrl = encodeURIComponent("https://instagram.com/p/ABC");
         const oembed = await fetch(`${server.url}oembed?url=${oembedUrl}`);
         expect(oembed.status).toBe(200);
-        expect(await oembed.json()).toMatchObject({
-          author_name: "alice",
-          author_url: "https://instagram.com/alice",
+        expect(await oembed.json()).toEqual({
+          html: expect.any(String),
           provider_name: "fxinstagram",
+          provider_url: `${server.url}`,
+          title: "fxinstagram embed",
+          type: "rich",
+          version: "1.0",
         });
       }
     );

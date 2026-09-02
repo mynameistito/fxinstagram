@@ -113,9 +113,6 @@ const hasSafeMedia = (
   hosts: ReadonlySet<string>
 ): boolean => media.every((item) => isSafeMediaUrl(item.url, hosts));
 
-const authorUrl = (username: string): URL =>
-  new URL(`/${encodeURIComponent(username)}`, "https://instagram.com");
-
 export const makeEmbedService = (
   config: EmbedServiceConfig
 ): Effect.Effect<EmbedService, never, MetadataServiceTag> =>
@@ -132,20 +129,9 @@ export const makeEmbedService = (
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
         const selection = yield* selectMedia(request, post.media);
-        const profilePicture =
-          post.profilePictureUrl !== undefined &&
-          isSafeMediaUrl(post.profilePictureUrl, config.mediaHosts)
-            ? post.profilePictureUrl
-            : undefined;
         const attribution = {
-          authorName: post.username,
-          authorUrl: authorUrl(post.username),
           footerText: "fxinstagram",
         } as const;
-        const attributionWithIcon =
-          profilePicture === undefined
-            ? attribution
-            : { ...attribution, authorIconUrl: profilePicture };
         const index = String(request.location.mediaIndex);
         const mediaUrl = selectedUrl(selection);
         if (
@@ -167,14 +153,14 @@ export const makeEmbedService = (
           const [first] = selection.items;
           const imageUrl = first?.type === "image" ? first.url : undefined;
           const document: EmbedDocument = {
-            ...attributionWithIcon,
+            ...attribution,
             canonicalUrl: post.canonicalUrl,
             card: "summary_large_image",
             description: description(post.caption, true),
             oEmbedUrl: localUrl(config, "/oembed", {
               url: post.canonicalUrl.toString(),
             }),
-            title: `${post.username} on fxinstagram`,
+            title: `${post.username} on instagram`,
           };
           if (imageUrl !== undefined) {
             return {
@@ -195,14 +181,14 @@ export const makeEmbedService = (
         }
         const { media } = selection;
         const document: EmbedDocument = {
-          ...attributionWithIcon,
+          ...attribution,
           canonicalUrl: post.canonicalUrl,
           card: media.type === "video" ? "player" : "summary_large_image",
           description: description(post.caption, false),
           oEmbedUrl: localUrl(config, "/oembed", {
             url: post.canonicalUrl.toString(),
           }),
-          title: `${post.username} on fxinstagram`,
+          title: `${post.username} on instagram`,
         };
         if (media.type === "image") {
           return {

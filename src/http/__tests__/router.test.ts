@@ -86,6 +86,34 @@ describe("real Bun HTTP router", () => {
     );
   });
 
+  test("blocks requests relayed by shotmod and leaves other Discord requests alone", async () => {
+    await withTestServer(
+      {
+        fixtures: new Map([["ABC", fixture]]),
+        origin: new URL("http://127.0.0.1:0"),
+        port: 0,
+      },
+      async (server) => {
+        const blocked = await fetch(`${server.url}p/ABC`, {
+          headers: {
+            "cf-worker": "shotmod.pages.dev",
+            "user-agent": "Discordbot/2.0",
+          },
+        });
+        expect(blocked.status).toBe(403);
+        expect(blocked.headers.get("content-type")).toContain("text/html");
+        expect(await blocked.text()).toContain(
+          "deploy your own instance instead of using this one"
+        );
+
+        const allowed = await fetch(`${server.url}p/ABC`, {
+          headers: { "user-agent": "Discordbot/2.0" },
+        });
+        expect(allowed.status).toBe(200);
+      }
+    );
+  });
+
   test("serves security and Do Not Track well-known resources", async () => {
     const events: HttpTelemetryEvent[] = [];
     await withTestServer(

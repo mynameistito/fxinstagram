@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
+import { makeFixtureJsonSource } from "@/adapters/instagram/fixture-json.ts";
 import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
 
 import { withTestServer } from "../../../__tests__/test-server.ts";
@@ -87,11 +88,18 @@ describe("real Bun HTTP router", () => {
   });
 
   test("blocks requests relayed by shotmod and leaves other Discord requests alone", async () => {
+    let metadataLookups = 0;
+    const fixtureSource = makeFixtureJsonSource(new Map([["ABC", fixture]]));
     await withTestServer(
       {
-        fixtures: new Map([["ABC", fixture]]),
         origin: new URL("http://127.0.0.1:0"),
         port: 0,
+        source: {
+          find: (location) => {
+            metadataLookups += 1;
+            return fixtureSource.find(location);
+          },
+        },
       },
       async (server) => {
         const blocked = await fetch(`${server.url}p/ABC`, {
@@ -105,11 +113,13 @@ describe("real Bun HTTP router", () => {
         expect(await blocked.text()).toContain(
           "deploy your own instance instead of using this one"
         );
+        expect(metadataLookups).toBe(0);
 
         const allowed = await fetch(`${server.url}p/ABC`, {
           headers: { "user-agent": "Discordbot/2.0" },
         });
         expect(allowed.status).toBe(200);
+        expect(metadataLookups).toBe(1);
       }
     );
   });

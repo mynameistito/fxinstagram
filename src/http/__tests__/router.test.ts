@@ -2,6 +2,7 @@ import { describe, expect, test } from "bun:test";
 
 import { Effect } from "effect";
 
+import { makeFixtureJsonSource } from "@/adapters/instagram/fixture-json.ts";
 import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
 
 import { withTestServer } from "../../../__tests__/test-server.ts";
@@ -82,6 +83,43 @@ describe("real Bun HTTP router", () => {
         expect(media.headers.get("location")).toBe(
           "https://cdn.example/image.jpg"
         );
+      }
+    );
+  });
+
+  test("blocks requests relayed by shotmod and leaves other Discord requests alone", async () => {
+    let metadataLookups = 0;
+    const fixtureSource = makeFixtureJsonSource(new Map([["ABC", fixture]]));
+    await withTestServer(
+      {
+        origin: new URL("http://127.0.0.1:0"),
+        port: 0,
+        source: {
+          find: (location) => {
+            metadataLookups += 1;
+            return fixtureSource.find(location);
+          },
+        },
+      },
+      async (server) => {
+        const blocked = await fetch(`${server.url}p/ABC`, {
+          headers: {
+            "cf-worker": "shotmod.pages.dev",
+            "user-agent": "Discordbot/2.0",
+          },
+        });
+        expect(blocked.status).toBe(403);
+        expect(blocked.headers.get("content-type")).toContain("text/html");
+        expect(await blocked.text()).toContain(
+          "deploy your own instance instead of using this one"
+        );
+        expect(metadataLookups).toBe(0);
+
+        const allowed = await fetch(`${server.url}p/ABC`, {
+          headers: { "user-agent": "Discordbot/2.0" },
+        });
+        expect(allowed.status).toBe(200);
+        expect(metadataLookups).toBe(1);
       }
     );
   });

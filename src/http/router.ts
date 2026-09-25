@@ -19,6 +19,7 @@ import type {
 import { wellKnownResponse } from "@/http/well-known.ts";
 
 const instagramOrigin = "https://instagram.com";
+const blockedWorkerRelay = "shotmod.pages.dev";
 const maxRequestUrlLength = 2048;
 const maxPathLength = 512;
 
@@ -54,6 +55,18 @@ const errorDocument = (origin: URL, status: 404 | 422 | 429 | 503) => ({
   description: errorDescription(status),
   title: "fxinstagram",
 });
+
+const blockedRelayResponse = (): Response =>
+  new Response(
+    '<!doctype html><html lang="en"><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Use your own service</title><main><h1>Use your own service</h1><p>Requests relayed through shotmod.pages.dev are blocked. The fxinstagram source code is public—deploy your own instance instead of using this one.</p></main></html>',
+    {
+      headers: {
+        "Content-Type": "text/html; charset=utf-8",
+        "X-Content-Type-Options": "nosniff",
+      },
+      status: 403,
+    }
+  );
 
 const routeTarget = (url: URL): string | undefined => {
   const parts = url.pathname.split("/").filter(Boolean);
@@ -281,6 +294,22 @@ const recordTelemetry = async (
   }
 };
 
+const routeRequest = async (
+  service: EmbedService,
+  request: Request,
+  url: URL
+): Promise<Response> => {
+  const parts = url.pathname.split("/").filter(Boolean);
+  if (url.pathname === "/") {
+    return indexResponse();
+  }
+  if (parts[0] === "oembed") {
+    return handleOembed(service, request, url);
+  }
+  const media = await handleMedia(service, request, parts);
+  return media ?? handleContent(service, request, url);
+};
+
 export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
   const rateLimitState = { requests: 0, startedAt: Date.now() };
   return async (request: Request): Promise<Response> => {
@@ -291,6 +320,21 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
       url = new URL(request.url);
     } catch {
       return new Response("invalid request", { status: 422 });
+    }
+    if (
+      request.headers.get("cf-worker")?.trim().toLowerCase() ===
+      blockedWorkerRelay
+    ) {
+      const response = withRequestId(blockedRelayResponse(), id);
+      await recordTelemetry(
+        options?.httpTelemetry,
+        id,
+        operationFor(url.pathname),
+        "rejected",
+        response.status,
+        started
+      );
+      return response;
     }
     const limit = options?.rateLimit ?? defaultRateLimit;
     const now = Date.now();
@@ -348,16 +392,7 @@ export const makeRouter = (service: EmbedService, options?: RouterOptions) => {
       );
       return result;
     }
-    const parts = url.pathname.split("/").filter(Boolean);
-    let response: Response;
-    if (url.pathname === "/") {
-      response = indexResponse();
-    } else if (parts[0] === "oembed") {
-      response = await handleOembed(service, request, url);
-    } else {
-      const media = await handleMedia(service, request, parts);
-      response = media ?? (await handleContent(service, request, url));
-    }
+    const response = await routeRequest(service, request, url);
     const result = withRequestId(response, id);
     await recordTelemetry(
       options?.httpTelemetry,

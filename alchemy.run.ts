@@ -14,16 +14,16 @@ const isAlchemyDev = ["1", "true"].includes(
 );
 
 const workerEnvironment = {
-  ALLOWED_MEDIA_HOSTS: Config.string("ALLOWED_MEDIA_HOSTS").pipe(
+  ALLOWED_MEDIA_HOSTS: Config.String("ALLOWED_MEDIA_HOSTS").pipe(
     Config.withDefault("scontent.cdninstagram.com")
   ),
-  METADATA_CACHE_TTL_SECONDS: Config.string("METADATA_CACHE_TTL_SECONDS").pipe(
+  METADATA_CACHE_TTL_SECONDS: Config.String("METADATA_CACHE_TTL_SECONDS").pipe(
     Config.withDefault("60")
   ),
-  METADATA_PROVIDER_TOKEN: Config.string("METADATA_PROVIDER_TOKEN").pipe(
+  METADATA_PROVIDER_TOKEN: Config.String("METADATA_PROVIDER_TOKEN").pipe(
     Config.withDefault("")
   ),
-  METADATA_TIMEOUT_MS: Config.string("METADATA_TIMEOUT_MS").pipe(
+  METADATA_TIMEOUT_MS: Config.String("METADATA_TIMEOUT_MS").pipe(
     Config.withDefault("5000")
   ),
   PUBLIC_ORIGIN: Cloudflare.Worker.URL,

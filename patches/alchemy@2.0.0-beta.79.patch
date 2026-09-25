@@ -1,0 +1,23 @@
+diff --git a/src/Cloudflare/StateStore/Api.ts b/src/Cloudflare/StateStore/Api.ts
+index cfc5c07b473bbfae83f0e7fe89ceb8e1275894be..56ba87e860b80e6e8b379cad3994c415db76561f 100644
+--- a/src/Cloudflare/StateStore/Api.ts
++++ b/src/Cloudflare/StateStore/Api.ts
+@@ -32,7 +32,7 @@ export const STATE_STORE_SCRIPT_NAME = "alchemy-state-store" as const;
+  * compare against this constant; a mismatch (or 404) triggers a
+  * forced redeploy via the bootstrap flow.
+  */
+-export const STATE_STORE_VERSION = 7 as const;
++export const STATE_STORE_VERSION = 8 as const;
+ 
+ /**
+  * Hard-coded OTLP/HTTP endpoints. Point at the public ingest relay
+@@ -183,6 +183,9 @@ export default Worker(
+             .getByName(params.stack)
+             .get({ stage: params.stage, fqn })
+             .pipe(
++              Effect.tapCause((cause) =>
++                Effect.logError("State Store getState handler failed", cause),
++              ),
+               Effect.withSpan("state_store.getState", {
+                 attributes: {
+                   "alchemy.state_store.op": "getState",

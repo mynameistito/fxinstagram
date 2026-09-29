@@ -37,7 +37,10 @@ export type WorkerIdentity =
       /** The pinned production script name. */
       readonly name: string;
       /** Production is served only through its custom domain. */
-      readonly workersDev: false;
+      readonly workersDev: {
+        readonly enabled: false;
+        readonly previewsEnabled: true;
+      };
     }
   | {
       /** Preview and development stages do not claim a custom domain. */
@@ -51,7 +54,11 @@ export type WorkerIdentity =
 /** Resolve an isolated Worker identity, reserving the custom domain for prod. */
 export const resolveWorkerIdentity = (stage: string): WorkerIdentity =>
   stage === PROD_STAGE
-    ? { domain: CUSTOM_DOMAIN, name: WORKER_NAME, workersDev: false }
+    ? {
+        domain: CUSTOM_DOMAIN,
+        name: WORKER_NAME,
+        workersDev: { enabled: false, previewsEnabled: true },
+      }
     : { name: `${WORKER_NAME}-${stage}`, workersDev: true };
 
 /** Declare the Worker with concrete stage-specific identity. */

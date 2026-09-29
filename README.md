@@ -71,6 +71,8 @@ GitHub Actions requires repository secrets named `CLOUDFLARE_API_TOKEN` and `CLO
 
 For an operator-driven development deployment, select a Cloudflare profile with `--profile` or `ALCHEMY_PROFILE` and run `bun run alchemy:deploy`. Roll back production by redeploying a previously reviewed commit. `alchemy destroy` is destructive; the automated cleanup workflow refuses every stage that is not shaped like `pr-<number>`.
 
+Temporary documentation-only change to verify the artifact preview workflow.
+
 ## Release Risks
 
 Public Instagram HTML and its nested video payload are undocumented and may change or be rate limited. When a direct video is absent or the secondary embed request fails, the service safely falls back to the poster/image card. Upstream volatility, expiring media URLs, provider quotas, distributed rate limiting, production cache limits, and retention remain operational concerns. Shared cache and provider protection are tracked in [issue 12](https://github.com/mynameistito/fxinstagram/issues/12).

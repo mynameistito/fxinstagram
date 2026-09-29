@@ -21,7 +21,7 @@ describe(resolveWorkerIdentity, () => {
     expect(resolveWorkerIdentity("prod")).toStrictEqual({
       domain: "ig.mynameistito.com",
       name: "fxinstagram",
-      workersDev: false,
+      workersDev: { enabled: false, previewsEnabled: true },
     });
   });
 

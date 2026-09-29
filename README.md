@@ -78,3 +78,5 @@ Public Instagram HTML and its nested video payload are undocumented and may chan
 ## Product Decisions
 
 Telegram support, Discord/Telegram APIs, new acquisition providers, arbitrary proxying, and broad infrastructure refactors are not part of this release.
+
+<!-- Temporary preview URL smoke test. -->

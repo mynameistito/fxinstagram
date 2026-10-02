@@ -19,12 +19,12 @@
     "alchemy:destroy": "bun alchemy destroy alchemy.run.ts --stage dev_fxinstagram"
   },
   "devDependencies": {
-    "@effect/platform-bun": "4.0.0-rc.115",
-    "@effect/platform-node": "4.0.0-rc.115",
+    "@effect/platform-bun": "4.0.0",
+    "@effect/platform-node": "4.0.0",
     "@types/bun": "^1.4.2",
     "@typescript/native": "npm:typescript@^7.0.2",
-    "alchemy": "2.0.0-beta.79",
-    "effect": "4.0.0-rc.115",
+    "alchemy": "2.0.0-beta.80",
+    "effect": "4.0.0",
     "eslint-plugin-github": "6.1.2",
     "eslint-plugin-sonarjs": "^4.2.1",
     "lefthook": "^2.1.14",

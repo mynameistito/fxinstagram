@@ -10,7 +10,7 @@ import type {
 const provider = "instagram-public-html";
 const metaTag = /<meta\s+[^>]*>/giu;
 const attribute =
-  /(?<name>[:\w-]+)\s*=\s*(?<quote>["'])(?<value>.*?)\k<quote>/giu;
+  /(?<name>[:\w-]+)\s*=\s*(?:"(?<doubleValue>[^"]*)"|'(?<singleValue>[^']*)')/giu;
 const escapedVideoUrl = /\\"video_url\\":\\"(?<value>(?:\\\\.|[^"\\])*)\\"/u;
 const plainVideoUrl = /"video_url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 const videoVersionsUrl =
@@ -56,7 +56,8 @@ const metadata = (html: string): ReadonlyMap<string, readonly string[]> => {
   for (const tag of html.match(metaTag) ?? []) {
     const attributes = new Map<string, string>();
     for (const match of tag.matchAll(attribute)) {
-      const { name, value } = match.groups ?? {};
+      const { doubleValue, name, singleValue } = match.groups ?? {};
+      const value = doubleValue ?? singleValue;
       if (name !== undefined && value !== undefined) {
         attributes.set(name.toLowerCase(), decodeHtml(value));
       }

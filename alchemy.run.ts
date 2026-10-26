@@ -1,7 +1,7 @@
+// oxlint-disable-next-line sonarjs/no-wildcard-import -- SAFETY: namespace import keeps the Cloudflare stack API cohesive.
+import * as Cloudflare from "@alchemy.run/cloudflare";
 // oxlint-disable-next-line sonarjs/no-wildcard-import -- SAFETY: namespace import is the documented Alchemy stack style.
 import * as Alchemy from "alchemy";
-// oxlint-disable-next-line sonarjs/no-wildcard-import -- SAFETY: namespace import keeps the Cloudflare stack API cohesive.
-import * as Cloudflare from "alchemy/Cloudflare";
 import { Stage } from "alchemy/Stage";
 import { Config, Effect } from "effect";
 

@@ -19,6 +19,8 @@ jobs:
             command: bun run check
           - name: Typecheck
             command: bun run typecheck
+          - name: Knip
+            command: bun run knip
           - name: Unit tests
             command: bun run test:unit
           - name: E2E tests

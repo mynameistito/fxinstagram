@@ -6,6 +6,7 @@
   "scripts": {
     "check": "ultracite check",
     "fix": "ultracite fix",
+    "knip": "knip",
     "prepare": "lefthook install",
     "start": "bun index.ts",
     "typecheck": "tsrs --noEmit",
@@ -29,6 +30,7 @@
     "eslint-plugin-jsdoc": "^65.4.2",
     "eslint-plugin-sonarjs": "^4.2.2",
     "eslint-plugin-tsdoc": "^0.5.4",
+    "knip": "6.44.0",
     "lefthook": "^2.2.2",
     "oxfmt": "^0.75.0",
     "oxlint": "^1.90.0",

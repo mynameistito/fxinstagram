@@ -73,6 +73,8 @@ For an operator-driven development deployment, select a Cloudflare profile with 
 
 ## Release Risks
 
+Alchemy beta.84 imports `effect/Crypto`, which Effect 4.1 removed. Keep Effect and its platform packages on the compatible 4.0 line while using beta.84. The `@effect/platform-node-shared` override keeps the transitive runtime aligned; its 4.1 release requires the newer crypto API. Revisit the constraint when upgrading Alchemy and coordinating its Cloudflare state-store migration.
+
 Public Instagram HTML and its nested video payload are undocumented and may change or be rate limited. When a direct video is absent or the secondary embed request fails, the service safely falls back to the poster/image card. Upstream volatility, expiring media URLs, provider quotas, distributed rate limiting, production cache limits, and retention remain operational concerns. Shared cache and provider protection are tracked in [issue 12](https://github.com/mynameistito/fxinstagram/issues/12).
 
 ## Product Decisions

@@ -19,12 +19,12 @@
     "alchemy:destroy": "bun alchemy destroy alchemy.run.ts --stage dev_fxinstagram"
   },
   "devDependencies": {
-    "@alchemy.run/cloudflare": "2.0.0-beta.85",
-    "@effect/platform-bun": "4.1.2",
-    "@effect/platform-node": "4.1.2",
+    "@alchemy.run/cloudflare": "2.0.0-beta.84",
+    "@effect/platform-bun": "4.0.7",
+    "@effect/platform-node": "4.0.7",
     "@types/bun": "^1.4.4",
-    "alchemy": "2.0.0-beta.85",
-    "effect": "4.1.2",
+    "alchemy": "2.0.0-beta.84",
+    "effect": "4.0.7",
     "eslint-plugin-github": "6.1.2",
     "eslint-plugin-jsdoc": "^65.4.2",
     "eslint-plugin-sonarjs": "^4.2.2",
@@ -34,7 +34,10 @@
     "oxlint": "^1.90.0",
     "oxlint-tsgolint": "^7.0.2005",
     "tsrs": "0.20.1-ts7.1.0-beta",
-    "ultracite": "8.1.1"
+    "ultracite": "8.1.0"
+  },
+  "overrides": {
+    "@effect/platform-node-shared": "4.0.7"
   },
   "packageManager": "bun@1.4.4"
 }

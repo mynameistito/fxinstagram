@@ -87,6 +87,8 @@ describe("local real-entrypoint route contracts", () => {
         const oembed = await fetch(`${server.url.href}oembed?url=${oembedUrl}`);
         expect(oembed.status).toBe(200);
 
+        const raw: unknown = await oembed.json();
+
         const body = Schema.decodeUnknownSync(
           Schema.Struct({
             html: Schema.String,
@@ -96,9 +98,10 @@ describe("local real-entrypoint route contracts", () => {
             type: Schema.String,
             version: Schema.String,
           })
-        )(await oembed.json());
+        )(raw);
 
-        expect(body).toMatchObject({
+        expect(raw).toEqual({
+          html: body.html,
           provider_name: "fxinstagram",
           provider_url: server.url.href,
           title: "fxinstagram embed",

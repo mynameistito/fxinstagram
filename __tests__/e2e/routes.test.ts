@@ -100,6 +100,7 @@ describe("local real-entrypoint route contracts", () => {
           })
         )(raw);
 
+        expect(body.html).toContain('property="og:title"');
         expect(raw).toEqual({
           html: body.html,
           provider_name: "fxinstagram",

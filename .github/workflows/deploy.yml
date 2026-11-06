@@ -29,7 +29,16 @@ jobs:
           PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
           [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
-          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state)
+          for attempt in 1 2 3; do
+            if state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state); then
+              break
+            fi
+            if [[ "$attempt" == 3 ]]; then
+              echo "Failed to check the current pull request state" >&2
+              exit 1
+            fi
+            sleep "$attempt"
+          done
           echo "state=$state" >> "$GITHUB_OUTPUT"
 
       - name: Run Alchemy deployment

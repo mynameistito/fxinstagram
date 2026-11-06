@@ -6,8 +6,8 @@ import { selectMedia } from "@/domain/embed-policy.ts";
 import type { EmbedRequest } from "@/domain/embed-request.ts";
 import type { MediaSelection, MetadataError } from "@/domain/media.ts";
 
-// oxlint-disable-next-line sonarjs/max-union-size -- This is the public projection contract.
 /** Result of resolving an embed request. */
+// oxlint-disable-next-line sonarjs/max-union-size -- This is the public projection contract.
 type EmbedResponse =
   | { readonly _tag: "Redirect"; readonly location: URL }
   | {

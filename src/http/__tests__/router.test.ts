@@ -146,16 +146,28 @@ describe("real Bun HTTP router", () => {
         );
         expect(events).toHaveLength(3);
 
+        const summaries = events.map((event) => ({
+          operation: event.operation,
+          outcome: event.outcome,
+          requestId: event.requestId,
+          status: event.status,
+        }));
+
         for (const response of [security, policy, dnt]) {
-          expect(
-            events.some(
-              (event) =>
-                event.operation === "content" &&
-                event.outcome === "success" &&
-                event.requestId === response.headers.get("x-request-id") &&
-                event.status === 200
-            )
-          ).toBe(true);
+          const requestId = response.headers.get("x-request-id");
+
+          expect(requestId).not.toBeNull();
+
+          if (requestId === null) {
+            throw new Error("Response missing request ID");
+          }
+
+          expect(summaries).toContainEqual({
+            operation: "content",
+            outcome: "success",
+            requestId,
+            status: 200,
+          });
         }
       }
     );

@@ -15,13 +15,20 @@ import type { MetadataTelemetry } from "@/application/metadata.ts";
 import { MetadataTelemetryService } from "@/application/telemetry.ts";
 import type { InstagramMetadataSource } from "@/domain/media.ts";
 
+/** Optional implementations used to compose metadata services. */
 export interface MetadataLayerOverrides {
-  readonly cache?: MetadataCache | undefined;
-  readonly source?: InstagramMetadataSource | undefined;
-  readonly telemetry?: MetadataTelemetry | undefined;
+  readonly cache?: MetadataCache;
+  readonly source?: InstagramMetadataSource;
+  readonly telemetry?: MetadataTelemetry;
 }
 
-/** Build the metadata runtime from already parsed startup configuration. */
+/**
+ * Build the metadata runtime from already parsed startup configuration.
+ * @param config - Parsed metadata configuration.
+ * @param fixtures - Fixtures indexed by shortcode.
+ * @param overrides - Optional runtime dependencies.
+ * @returns The composed metadata service layer.
+ */
 export const metadataLayer = (
   config: MetadataConfig,
   fixtures: ReadonlyMap<string, unknown>,
@@ -31,6 +38,7 @@ export const metadataLayer = (
     MetadataTelemetryService,
     overrides?.telemetry ?? { record: () => Effect.void }
   );
+
   return Layer.effect(MetadataServiceTag, makeMetadataService).pipe(
     Layer.provide(
       Layer.mergeAll(

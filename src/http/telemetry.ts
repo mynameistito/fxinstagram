@@ -1,7 +1,10 @@
 import type { Effect } from "effect/Effect";
 
+/** Supported request operations recorded in telemetry. */
 export type HttpOperation = "content" | "media" | "oembed";
-export type HttpOutcome = "success" | "rejected" | "failure";
+
+/** Outcome recorded for an HTTP request. */
+type HttpOutcome = "success" | "rejected" | "failure";
 
 /** Sanitized request telemetry; it intentionally contains no URL or user content. */
 export interface HttpTelemetryEvent {
@@ -17,6 +20,7 @@ export interface HttpTelemetry {
   readonly record: (event: HttpTelemetryEvent) => Effect<void>;
 }
 
+/** Request count and time window for rate limiting. */
 export interface RateLimitConfig {
   readonly maxRequests: number;
   readonly windowMs: number;

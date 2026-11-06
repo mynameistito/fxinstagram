@@ -9,7 +9,7 @@ export interface MetadataConfig {
   readonly cacheTtlMs: number;
   readonly cacheMaxEntries: number;
   readonly retryLimit: number;
-  readonly credential?: Redacted.Redacted<string>;
+  readonly credential?: Redacted.Redacted;
 }
 
 /** Configuration parsing failures. */
@@ -19,23 +19,28 @@ export type ConfigError =
 
 const positive = (name: string, value: string | undefined) => {
   const number = Number(value ?? "");
+
   if (Number.isSafeInteger(number) && number > 0) {
     return Effect.succeed(number);
   }
+
   return Effect.fail<ConfigError>({ _tag: "InvalidConfigValue", name });
 };
 
 const nonNegative = (name: string, value: string | undefined) => {
   const number = Number(value ?? "");
+
   if (Number.isSafeInteger(number) && number >= 0) {
     return Effect.succeed(number);
   }
+
   return Effect.fail<ConfigError>({ _tag: "InvalidConfigValue", name });
 };
 
 const parseEndpoint = (value: string): Effect.Effect<URL, ConfigError> => {
   try {
     const url = new URL(value);
+
     // oxlint-disable-next-line sonarjs/expression-complexity
     if (
       url.protocol !== "https:" ||
@@ -46,13 +51,18 @@ const parseEndpoint = (value: string): Effect.Effect<URL, ConfigError> => {
     ) {
       return Effect.fail({ _tag: "UnsafeProviderEndpoint", value });
     }
+
     return Effect.succeed(url);
   } catch {
     return Effect.fail({ _tag: "UnsafeProviderEndpoint", value });
   }
 };
 
-/** Parse metadata settings once at the composition boundary. */
+/**
+ * Parse metadata settings once at the composition boundary.
+ * @param input - Environment-style configuration values.
+ * @returns An effect producing parsed settings or a configuration error.
+ */
 export const parseMetadataConfig = (
   input: Readonly<Record<string, string | undefined>>
 ): Effect.Effect<MetadataConfig, ConfigError> =>
@@ -60,23 +70,29 @@ export const parseMetadataConfig = (
     const providerUrl = yield* parseEndpoint(
       input.METADATA_PROVIDER_URL ?? "https://fixtures.invalid"
     );
+
     const requestTimeoutMs = yield* positive(
       "METADATA_TIMEOUT_MS",
       input.METADATA_TIMEOUT_MS ?? "1000"
     );
+
     const cacheTtlMs = yield* positive(
       "METADATA_CACHE_TTL_MS",
       input.METADATA_CACHE_TTL_MS ?? "60000"
     );
+
     const cacheMaxEntries = yield* positive(
       "METADATA_CACHE_MAX_ENTRIES",
       input.METADATA_CACHE_MAX_ENTRIES ?? "256"
     );
+
     const retryLimit = yield* nonNegative(
       "METADATA_RETRY_LIMIT",
       input.METADATA_RETRY_LIMIT ?? "1"
     );
+
     const credential = input.METADATA_PROVIDER_TOKEN;
+
     const result: MetadataConfig = {
       cacheMaxEntries,
       cacheTtlMs,
@@ -85,6 +101,7 @@ export const parseMetadataConfig = (
       requestTimeoutMs,
       retryLimit,
     };
+
     return credential === undefined
       ? result
       : { ...result, credential: Redacted.make(credential) };

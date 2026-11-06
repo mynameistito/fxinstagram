@@ -7,6 +7,7 @@ import { makeRouter } from "@/http/router.ts";
 import { parseAppConfig } from "@/runtime/config.ts";
 import { metadataLayer } from "@/runtime/metadata.ts";
 
+/** Environment bindings supplied to the Worker. */
 export interface WorkerEnv {
   readonly [key: string]: string | undefined;
   readonly PUBLIC_ORIGIN: string;
@@ -26,9 +27,11 @@ type Handler = ReturnType<typeof makeRouter>;
 
 const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
   const config = await Effect.runPromise(Effect.result(parseAppConfig(env)));
+
   if (config._tag === "Failure") {
     throw new Error(`invalid runtime configuration: ${config.failure.field}`);
   }
+
   const metadata = {
     cacheMaxEntries: 256,
     cacheTtlMs: config.success.metadataCacheTtlSeconds * 1000,
@@ -37,10 +40,12 @@ const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
     requestTimeoutMs: config.success.metadataTimeoutMs,
     retryLimit: 0,
   };
+
   const metadataConfig =
     config.success.providerCredential === undefined
       ? metadata
       : { ...metadata, credential: config.success.providerCredential };
+
   const service = await Effect.runPromise(
     makeEmbedService({
       mediaHosts: config.success.allowedMediaHosts,
@@ -53,6 +58,7 @@ const makeHandler = async (env: WorkerEnv): Promise<Handler> => {
       )
     )
   );
+
   return makeRouter(service);
 };
 
@@ -60,10 +66,12 @@ const handlers = new WeakMap<object, Promise<Handler>>();
 
 const fetch = async (request: Request, env: WorkerEnv): Promise<Response> => {
   let handler = handlers.get(env);
+
   if (handler === undefined) {
     handler = makeHandler(env);
     handlers.set(env, handler);
   }
+
   try {
     return await (
       await handler

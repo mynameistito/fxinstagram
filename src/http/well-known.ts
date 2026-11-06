@@ -47,12 +47,15 @@ export const wellKnownResponse = (pathname: string): Response | undefined => {
     case "/.well-known/security.txt": {
       return textResponse(securityTxt);
     }
+
     case "/.well-known/dnt-policy.txt": {
       return textResponse(dntPolicyTxt);
     }
+
     case "/.well-known/dnt": {
       return dntResponse();
     }
+
     default: {
       return undefined;
     }

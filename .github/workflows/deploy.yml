@@ -21,7 +21,20 @@ jobs:
       deployments: write
       pull-requests: write
     steps:
+      - name: Check current pull request state before cleanup
+        id: current-pr
+        if: github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state)
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+
       - name: Run Alchemy deployment
+        # A reopen after the check can still race cleanup; the action must recheck at destruction.
+        if: github.event_name != 'pull_request_target' || steps.current-pr.outputs.state == 'closed'
         # Pin the published action release immutably.
         uses: mynameistito/alchemy-deploy@4e29a36d61cf8cc4277bdcd35d7b3eff13150b38 # v3.2.0
         env:

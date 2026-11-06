@@ -41,6 +41,26 @@ jobs:
           done
           echo "state=$state" >> "$GITHUB_OUTPUT"
 
+      - name: Check state-store compatibility
+        if: github.event_name != 'pull_request_target' || steps.current-pr.outputs.state == 'closed'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          # The pinned action uses Alchemy beta.84, which expects state-store v7.
+          # Never let it bootstrap or downgrade an unknown or newer store.
+          subdomain=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" |
+            node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const d = JSON.parse(s); if (d.success !== true || !/^[a-z0-9-]+$/.test(d.result?.subdomain ?? "")) process.exit(1); console.log(d.result.subdomain); });')
+          version=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
+            "https://alchemy-state-store.$subdomain.workers.dev/version" |
+            node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const d = JSON.parse(s); if (!Number.isInteger(d.version)) process.exit(1); console.log(d.version); });')
+          if [[ "$version" != 7 ]]; then
+            echo "::error::The pinned Alchemy action requires state-store v7; deployment and cleanup are blocked until the runtime and store are coordinated."
+            exit 1
+          fi
+
       - name: Run Alchemy deployment
         # A reopen after the check can still race cleanup; the action must recheck at destruction.
         if: github.event_name != 'pull_request_target' || steps.current-pr.outputs.state == 'closed'

@@ -10,24 +10,32 @@ interface Entry {
   readonly expiresAt: number;
 }
 
-/** Build a TTL-aware bounded in-memory metadata cache. */
+/**
+ * Build a TTL-aware bounded in-memory metadata cache.
+ * @param config - Cache capacity and expiration configuration.
+ * @returns A layer providing the cache service.
+ */
 export const layerMemory = (config: MetadataConfig) =>
   Layer.effect(
     MetadataCacheService,
     Effect.gen(function* makeMemoryCache() {
       const clock = yield* Clock.Clock;
       const entries = new Map<string, Entry>();
+
       const get = (
         key: string
       ): Effect.Effect<InstagramPost | undefined, CacheError> =>
         Effect.gen(function* readMemoryCache() {
           const now = yield* clock.currentTimeMillis;
           const entry = entries.get(key);
+
           if (entry === undefined || entry.expiresAt <= now) {
             entries.delete(key);
-            return;
           }
-          return entry.value;
+
+          return entry !== undefined && entry.expiresAt > now
+            ? entry.value
+            : undefined;
         }).pipe(
           Effect.mapError((cause) => ({
             _tag: "CacheUnavailable",
@@ -35,6 +43,7 @@ export const layerMemory = (config: MetadataConfig) =>
             operation: "get",
           }))
         );
+
       const put = (
         key: string,
         value: InstagramPost,
@@ -43,13 +52,17 @@ export const layerMemory = (config: MetadataConfig) =>
         Effect.gen(function* writeMemoryCache() {
           const now = yield* clock.currentTimeMillis;
           entries.delete(key);
+
           while (entries.size >= config.cacheMaxEntries) {
             const oldest = entries.keys().next();
-            if (oldest.done) {
+
+            if (oldest.done === true) {
               break;
             }
+
             entries.delete(oldest.value);
           }
+
           entries.set(key, {
             expiresAt: now + Duration.toMillis(ttl),
             value,
@@ -61,6 +74,7 @@ export const layerMemory = (config: MetadataConfig) =>
             operation: "put",
           }))
         );
+
       return MetadataCacheService.of({ get, put });
     })
   );

@@ -7,7 +7,7 @@ import {
 } from "effect/Schema";
 
 /** The Instagram content families supported by the application. */
-export type InstagramPostKind = "post" | "reel" | "tv" | "story";
+type InstagramPostKind = "post" | "reel" | "tv" | "story";
 
 /** A normalized Instagram content location. Media indices are zero-based. */
 export interface InstagramLocation {
@@ -34,12 +34,15 @@ const routeKind = (segment: string): InstagramPostKind | undefined => {
   if (segment === "p") {
     return "post";
   }
+
   if (segment === "reel" || segment === "reels") {
     return "reel";
   }
+
   if (segment === "tv") {
     return "tv";
   }
+
   return undefined;
 };
 
@@ -54,10 +57,13 @@ const parseIndex = (
   if (value === null || value === "") {
     return Effect.succeed(0);
   }
-  if (!/^[1-9][0-9]*$/u.test(value)) {
+
+  if (!/^[1-9]\d*$/u.test(value)) {
     return Effect.fail({ _tag: "InvalidMediaIndex" });
   }
+
   const index = Number(value) - 1;
+
   return Number.isSafeInteger(index)
     ? Effect.succeed(index)
     : Effect.fail({ _tag: "InvalidMediaIndex" });
@@ -72,12 +78,14 @@ const location = (
   if (!Shortcode.test(shortcode) || shortcode.length > maxShortcodeLength) {
     return Effect.fail({ _tag: "InvalidShortcode" });
   }
+
   if (
     username !== undefined &&
     (!Username.test(username) || username.length > maxUsernameLength)
   ) {
     return Effect.fail({ _tag: "InvalidShortcode" });
   }
+
   return Effect.succeed(
     username === undefined
       ? { kind, mediaIndex, shortcode }
@@ -85,16 +93,22 @@ const location = (
   );
 };
 
-/** Parse an Instagram URL or untrusted URL string into a canonical location. */
+/**
+ * Parse an Instagram URL or untrusted URL string into a canonical location.
+ * @param input - Untrusted URL or string.
+ * @returns An effect producing the location or a parsing error.
+ */
 export const parseInstagramUrl = (
   input: unknown
 ): Effect.Effect<InstagramLocation, ParseInstagramUrlError> => {
   const value = input instanceof URL ? input : parseString(input);
+
   if (value === undefined) {
     return Effect.fail({ _tag: "UnsupportedHost", host: "" });
   }
 
   let url: URL;
+
   try {
     url = input instanceof URL ? input : new URL(value);
   } catch {
@@ -115,14 +129,18 @@ export const parseInstagramUrl = (
         return "";
       }
     });
+
   const index = parseIndex(url.searchParams.get("img_index"));
+
   // oxlint-disable-next-line unicorn/no-array-method-this-argument
   return Effect.flatMap(index, (mediaIndex) => {
     const rootKind = routeKind(parts[0] ?? "");
     const userKind = routeKind(parts[1] ?? "");
+
     if (parts.length === 2 && rootKind !== undefined) {
       return location(rootKind, parts[1] ?? "", undefined, mediaIndex);
     }
+
     if (
       parts.length === 3 &&
       Username.test(parts[0] ?? "") &&
@@ -130,20 +148,28 @@ export const parseInstagramUrl = (
     ) {
       return location(userKind, parts[2] ?? "", parts[0], mediaIndex);
     }
+
     if (parts.length === 3 && parts[0] === "stories") {
       return location("story", parts[2] ?? "", parts[1], mediaIndex);
     }
+
     return Effect.fail({ _tag: "UnsupportedPath", path: url.pathname });
   });
 };
 // oxlint-enable anti-slop/no-unknown-parameters
 
-/** Render the stable canonical route form for a parsed location. */
+/**
+ * Render the stable canonical route form for a parsed location.
+ * @param value - Parsed Instagram location.
+ * @returns The canonical route path.
+ */
 export const instagramLocationPath = (value: InstagramLocation): string => {
   if (value.kind === "story") {
     return `/stories/${value.username ?? ""}/${value.shortcode}`;
   }
+
   const prefix = value.username === undefined ? "" : `/${value.username}`;
   const route = value.kind === "post" ? "p" : value.kind;
+
   return `${prefix}/${route}/${value.shortcode}`;
 };

@@ -19,14 +19,18 @@ const parseMedia = (value: unknown): InstagramMedia | undefined => {
   if (!isRecord(value) || (value.type !== "image" && value.type !== "video")) {
     return undefined;
   }
+
   if (typeof value.url !== "string") {
     return undefined;
   }
+
   try {
     const url = new URL(value.url);
+
     if (url.protocol !== "https:" || url.toString().length > 2048) {
       return undefined;
     }
+
     return {
       type: value.type,
       url,
@@ -45,25 +49,33 @@ const parsePost = (
   if (!isRecord(value)) {
     return undefined;
   }
+
   if (typeof value.username !== "string" || typeof value.caption !== "string") {
     return undefined;
   }
+
   if (typeof value.canonicalUrl !== "string" || !Array.isArray(value.media)) {
     return undefined;
   }
+
   let canonicalUrl: URL;
+
   try {
     canonicalUrl = new URL(value.canonicalUrl);
   } catch {
     return undefined;
   }
+
   if (canonicalUrl.toString().length > 2048) {
     return undefined;
   }
+
   const media = value.media.map(parseMedia);
+
   if (media.some((item) => item === undefined)) {
     return undefined;
   }
+
   return {
     canonicalUrl,
     caption: value.caption,
@@ -74,6 +86,7 @@ const parsePost = (
       ? (() => {
           try {
             const profilePictureUrl = new URL(value.profilePictureUrl);
+
             return profilePictureUrl.protocol === "https:"
               ? { profilePictureUrl }
               : {};
@@ -85,19 +98,26 @@ const parsePost = (
   };
 };
 
-/** A credential-free provider adapter for versioned local JSON fixtures. */
-export const makeFixtureJsonSource = (
+/**
+ * Create a credential-free provider adapter for local JSON fixtures.
+ * @param fixtures - Fixtures indexed by shortcode.
+ * @returns A metadata source backed by the fixtures.
+ */
+const makeFixtureJsonSource = (
   fixtures: ReadonlyMap<string, unknown>
 ): InstagramMetadataSource => ({
   find: (location) => {
     const fixture = fixtures.get(location.shortcode);
+
     if (fixture === undefined) {
       return Effect.fail({
         _tag: "MetadataNotFound",
         shortcode: location.shortcode,
       });
     }
+
     const post = parsePost(fixture, location);
+
     return post === undefined
       ? Effect.fail<MetadataError>({
           _tag: "ProviderResponseInvalid",
@@ -107,6 +127,10 @@ export const makeFixtureJsonSource = (
   },
 });
 
-/** Provide a fixture source as an Effect Layer. */
+/**
+ * Provide a fixture source as an Effect Layer.
+ * @param fixtures - Fixtures indexed by shortcode.
+ * @returns A layer providing the fixture source.
+ */
 export const layerFixtureJson = (fixtures: ReadonlyMap<string, unknown>) =>
   Layer.succeed(MetadataSourceService, makeFixtureJsonSource(fixtures));

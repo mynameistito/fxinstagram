@@ -6,8 +6,9 @@ import { selectMedia } from "@/domain/embed-policy.ts";
 import type { EmbedRequest } from "@/domain/embed-request.ts";
 import type { MediaSelection, MetadataError } from "@/domain/media.ts";
 
+/** Result of resolving an embed request. */
 // oxlint-disable-next-line sonarjs/max-union-size -- This is the public projection contract.
-export type EmbedResponse =
+type EmbedResponse =
   | { readonly _tag: "Redirect"; readonly location: URL }
   | {
       readonly _tag: "Html";
@@ -17,6 +18,7 @@ export type EmbedResponse =
     }
   | { readonly _tag: "MediaRedirect"; readonly location: URL };
 
+/** Metadata rendered into an embed document. */
 export interface EmbedDocument {
   readonly title: string;
   readonly description: string;
@@ -33,11 +35,13 @@ export interface EmbedDocument {
   readonly oEmbedUrl?: URL;
 }
 
+/** Origin and allowed media hosts for embed rendering. */
 export interface EmbedServiceConfig {
   readonly origin: URL;
   readonly mediaHosts: ReadonlySet<string>;
 }
 
+/** Errors returned while resolving an embed. */
 export type EmbedApplicationError =
   | MetadataError
   | CacheError
@@ -45,6 +49,7 @@ export type EmbedApplicationError =
   | { readonly _tag: "MediaIndexOutOfRange"; readonly index: number }
   | { readonly _tag: "UnsafeMediaUrl" };
 
+/** Application capability for resolving embeds. */
 export interface EmbedService {
   readonly resolve: (
     request: EmbedRequest
@@ -66,11 +71,13 @@ const localUrl = (
   params?: Readonly<Record<string, string>>
 ): URL => {
   const url = new URL(path, config.origin);
+
   if (params !== undefined) {
     for (const [key, value] of Object.entries(params)) {
       url.searchParams.set(key, value);
     }
   }
+
   return url;
 };
 
@@ -80,6 +87,7 @@ const isSafeMediaUrl = (url: URL, hosts: ReadonlySet<string>): boolean => {
   if (url.protocol !== "https:" || url.username !== "" || url.password !== "") {
     return false;
   }
+
   return (
     url.toString().length <= maxMediaUrlLength &&
     hosts.has(url.hostname.toLowerCase())
@@ -98,6 +106,7 @@ const selectedUrl = (selection: MediaSelection): URL | undefined => {
   if (selection._tag === "gallery") {
     return undefined;
   }
+
   return selection.media.url;
 };
 
@@ -113,33 +122,46 @@ const hasSafeMedia = (
   hosts: ReadonlySet<string>
 ): boolean => media.every((item) => isSafeMediaUrl(item.url, hosts));
 
+/**
+ * Construct the embed application service.
+ * @param config - Origin and allowed media host configuration.
+ * @returns An effect producing the embed service.
+ */
 export const makeEmbedService = (
   config: EmbedServiceConfig
 ): Effect.Effect<EmbedService, never, MetadataServiceTag> =>
   Effect.gen(function* buildEmbedService() {
     const metadata = yield* MetadataServiceTag;
+
     const resolve = (request: EmbedRequest) =>
       // oxlint-disable-next-line sonarjs/no-nested-functions -- Effect requires the scoped operation body.
       Effect.gen(function* resolveEmbed() {
         const post = yield* metadata.get(request.location);
+
         if (!isSafeCanonicalUrl(post.canonicalUrl)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
+
         if (!hasSafeMedia(post.media, config.mediaHosts)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
+
         const selection = yield* selectMedia(request, post.media);
+
         const attribution = {
           footerText: "fxinstagram",
         } as const;
+
         const index = String(request.location.mediaIndex);
         const mediaUrl = selectedUrl(selection);
+
         if (
           mediaUrl !== undefined &&
           !isSafeMediaUrl(mediaUrl, config.mediaHosts)
         ) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
+
         if (request.mode === "direct") {
           return {
             _tag: "MediaRedirect",
@@ -149,9 +171,11 @@ export const makeEmbedService = (
             ),
           } as const;
         }
+
         if (selection._tag === "gallery") {
           const [first] = selection.items;
           const imageUrl = first?.type === "image" ? first.url : undefined;
+
           const document: EmbedDocument = {
             ...attribution,
             canonicalUrl: post.canonicalUrl,
@@ -162,6 +186,7 @@ export const makeEmbedService = (
             }),
             title: `${post.username} on instagram`,
           };
+
           if (imageUrl !== undefined) {
             return {
               _tag: "Html",
@@ -173,13 +198,16 @@ export const makeEmbedService = (
               status: 200,
             } as const;
           }
+
           return {
             _tag: "Html",
             document,
             status: 200,
           } as const;
         }
+
         const { media } = selection;
+
         const document: EmbedDocument = {
           ...attribution,
           canonicalUrl: post.canonicalUrl,
@@ -190,6 +218,7 @@ export const makeEmbedService = (
           }),
           title: `${post.username} on instagram`,
         };
+
         if (media.type === "image") {
           return {
             _tag: "Html",
@@ -201,6 +230,7 @@ export const makeEmbedService = (
             status: 200,
           } as const;
         }
+
         const videoDocument =
           media.posterUrl === undefined
             ? { ...document, videoUrl: media.url }
@@ -210,26 +240,34 @@ export const makeEmbedService = (
                 imageUrl: media.posterUrl,
                 videoUrl: media.url,
               };
+
         return {
           _tag: "Html",
           document: videoDocument,
           status: 200,
         } as const;
       });
+
     const resolveMedia = (request: EmbedRequest) =>
       Effect.gen(function* resolveMediaProjection() {
         const post = yield* metadata.get(request.location);
+
         if (!isSafeCanonicalUrl(post.canonicalUrl)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
+
         const selection = yield* selectMedia(request, post.media);
+
         if (selection._tag === "gallery") {
           return yield* Effect.fail({ _tag: "MediaMissing" } as const);
         }
+
         if (!isSafeMediaUrl(selection.media.url, config.mediaHosts)) {
           return yield* Effect.fail({ _tag: "UnsafeMediaUrl" } as const);
         }
+
         return { type: selection._tag, url: selection.media.url };
       });
+
     return { resolve, resolveMedia };
   });

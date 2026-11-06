@@ -4,7 +4,7 @@ on:
   push:
     branches: [main]
   pull_request:
-    branches: [main]
+    branches: [main, "chore/modernisation-*"]
 
 permissions:
   contents: read
@@ -19,6 +19,8 @@ jobs:
             command: bun run check
           - name: Typecheck
             command: bun run typecheck
+          - name: Knip
+            command: bun run knip
           - name: Unit tests
             command: bun run test:unit
           - name: E2E tests
@@ -44,12 +46,11 @@ jobs:
           ref: ${{ github.event_name == 'pull_request' && github.event.pull_request.head.sha || github.sha }}
           persist-credentials: false
       - uses: ./.github/actions/setup-bun
-      - run: bun install --frozen-lockfile
       - name: Bundle the Worker without deployment credentials
         run: |
           mkdir -p "$RUNNER_TEMP/alchemy-worker/worker"
           bun build src/runtime/worker.ts --target browser --outfile "$RUNNER_TEMP/alchemy-worker/worker/index.js"
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: alchemy-worker
           path: ${{ runner.temp }}/alchemy-worker/

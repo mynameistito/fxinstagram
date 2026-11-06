@@ -13,10 +13,12 @@ const location: InstagramLocation = {
   mediaIndex: 1,
   shortcode: "ABC",
 };
+
 const media: readonly InstagramMedia[] = [
   { type: "image", url: new URL("https://cdn.example/image.jpg") },
   { type: "video", url: new URL("https://cdn.example/video.mp4") },
 ];
+
 const request = (input: {
   readonly query?: unknown;
   readonly headers?: unknown;

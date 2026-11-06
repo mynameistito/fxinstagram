@@ -1,4 +1,5 @@
 import { Effect } from "effect";
+import { is as isSchema, String as SchemaString } from "effect/Schema";
 
 import type { InstagramLocation } from "@/domain/instagram-url.ts";
 import type {
@@ -8,15 +9,20 @@ import type {
 } from "@/domain/media.ts";
 
 const provider = "instagram-public-html";
-const metaTag = /<meta\s+[^>]*>/giu;
+const metaTag = /<meta\s[^>]*>/giu;
+
 const attribute =
-  /(?<name>[:\w-]+)\s*=\s*(?:"(?<doubleValue>[^"]*)"|'(?<singleValue>[^']*)')/giu;
+  /(?<![:\w-])(?<name>[:\w-]+)\s*=\s*(?:"(?<doubleValue>[^"]*)"|'(?<singleValue>[^']*)')/giu;
+
 const escapedVideoUrl = /\\"video_url\\":\\"(?<value>(?:\\\\.|[^"\\])*)\\"/u;
 const plainVideoUrl = /"video_url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
+
 const videoVersionsUrl =
   /"video_versions"\s*:\s*\[\s*\{\s*"type"\s*:\s*\d+\s*,\s*"url"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
+
 const mediaHostSuffixes = [".cdninstagram.com", ".fbcdn.net"] as const;
 const normalizedMediaHost = "scontent.cdninstagram.com";
+
 const profilePictureUrl =
   /"profile_pic_url(?:_hd)?"\s*:\s*"(?<value>(?:\\.|[^"\\])*)"/u;
 
@@ -24,7 +30,9 @@ const positiveInteger = (value: string | undefined): number | undefined => {
   if (value === undefined || !/^\d+$/u.test(value)) {
     return undefined;
   }
+
   const number = Number(value);
+
   return Number.isSafeInteger(number) && number > 0 ? number : undefined;
 };
 
@@ -34,11 +42,13 @@ const imageMedia = (
   height: number | undefined
 ): Extract<InstagramMedia, { readonly type: "image" }> => {
   const media = { type: "image" as const, url };
+
   if (width !== undefined) {
     return height === undefined
       ? { ...media, width }
       : { ...media, height, width };
   }
+
   return height === undefined ? media : { ...media, height };
 };
 
@@ -53,23 +63,29 @@ const decodeHtml = (value: string): string =>
 
 const metadata = (html: string): ReadonlyMap<string, readonly string[]> => {
   const values = new Map<string, string[]>();
+
   for (const tag of html.match(metaTag) ?? []) {
     const attributes = new Map<string, string>();
+
     for (const match of tag.matchAll(attribute)) {
       const { doubleValue, name, singleValue } = match.groups ?? {};
       const value = doubleValue ?? singleValue;
+
       if (name !== undefined && value !== undefined) {
         attributes.set(name.toLowerCase(), decodeHtml(value));
       }
     }
+
     const key = attributes.get("property") ?? attributes.get("name");
     const content = attributes.get("content");
+
     if (key !== undefined && content !== undefined) {
       const entries = values.get(key) ?? [];
       entries.push(content);
       values.set(key, entries);
     }
   }
+
   return values;
 };
 
@@ -83,8 +99,10 @@ const safeUrl = (value: string | undefined): URL | undefined => {
   if (value === undefined) {
     return undefined;
   }
+
   try {
     const url = new URL(value);
+
     return url.protocol === "https:" &&
       url.username === "" &&
       url.password === ""
@@ -97,6 +115,7 @@ const safeUrl = (value: string | undefined): URL | undefined => {
 
 const normalizeMediaUrl = (url: URL): URL | undefined => {
   const hostname = url.hostname.toLowerCase();
+
   if (
     hostname !== "cdninstagram.com" &&
     hostname !== "fbcdn.net" &&
@@ -104,8 +123,10 @@ const normalizeMediaUrl = (url: URL): URL | undefined => {
   ) {
     return undefined;
   }
+
   const normalized = new URL(url);
   normalized.hostname = normalizedMediaHost;
+
   return normalized;
 };
 
@@ -115,14 +136,23 @@ const decodeNestedJsonString = (
   if (value === undefined) {
     return undefined;
   }
+
   let decoded = value;
+
   for (let depth = 0; depth < 2 && decoded.includes("\\"); depth += 1) {
     try {
-      decoded = JSON.parse(`"${decoded}"`);
+      const parsed: unknown = JSON.parse(`"${decoded}"`);
+
+      if (!isSchema(SchemaString)(parsed)) {
+        return undefined;
+      }
+
+      decoded = parsed;
     } catch {
       return undefined;
     }
   }
+
   return decoded;
 };
 
@@ -130,40 +160,54 @@ const usernameFrom = (canonicalUrl: URL, title: string): string => {
   const canonicalUsername = canonicalUrl.pathname
     .split("/")
     .find((part) => part !== "");
+
   if (
     canonicalUsername !== undefined &&
     !["p", "reel", "reels", "tv"].includes(canonicalUsername)
   ) {
     return canonicalUsername;
   }
+
   const titleUsername = /^@(?<username>[^\s]+)(?:\s|$)/u.exec(title)?.groups
     ?.username;
+
   return titleUsername ?? "instagram";
 };
 
 const profilePictureFrom = (html: string): URL | undefined => {
   const value = profilePictureUrl.exec(html)?.groups?.value;
   const rawUrl = safeUrl(decodeNestedJsonString(value));
+
   return rawUrl === undefined ? undefined : normalizeMediaUrl(rawUrl);
 };
 
-/** Parse Instagram's public Open Graph document into normalized metadata. */
+/**
+ * Parse Instagram's public Open Graph document into normalized metadata.
+ * @param html - Public Instagram HTML.
+ * @param location - Requested Instagram location.
+ * @returns An effect producing normalized metadata or a provider error.
+ */
 export const parsePublicInstagramHtml = (
   html: string,
   location: InstagramLocation
 ): Effect.Effect<InstagramPost, MetadataError> => {
   const values = metadata(html);
   const canonicalUrl = safeUrl(metadataValue(values, "og:url"));
+
   const imageValues = values.get("og:image") ?? [
     metadataValue(values, "twitter:image"),
   ];
+
   const imageUrls = imageValues.flatMap((value, index) => {
     const rawUrl = safeUrl(value);
+
     const imageUrl =
       rawUrl === undefined ? undefined : normalizeMediaUrl(rawUrl);
+
     if (imageUrl === undefined) {
       return [];
     }
+
     return [
       imageMedia(
         imageUrl,
@@ -172,14 +216,18 @@ export const parsePublicInstagramHtml = (
       ),
     ];
   });
+
   if (canonicalUrl === undefined || imageUrls.length === 0) {
     return Effect.fail({ _tag: "ProviderResponseInvalid", provider });
   }
+
   const title =
     metadataValue(values, "og:title") ??
     metadataValue(values, "twitter:title") ??
     "";
+
   const profilePicture = profilePictureFrom(html);
+
   const post: InstagramPost = {
     canonicalUrl,
     caption:
@@ -190,6 +238,7 @@ export const parsePublicInstagramHtml = (
     shortcode: location.shortcode,
     username: usernameFrom(canonicalUrl, title),
   };
+
   return Effect.succeed(
     profilePicture === undefined
       ? post
@@ -197,19 +246,28 @@ export const parsePublicInstagramHtml = (
   );
 };
 
-/** Extract and normalize a direct video URL from Instagram's embed document. */
+/**
+ * Extract and normalize a direct video URL from Instagram's embed document.
+ * @param html - Instagram embed HTML.
+ * @returns A safe video URL, if one is present.
+ */
 export const parsePublicInstagramVideo = (html: string): URL | undefined => {
   const match =
     videoVersionsUrl.exec(html) ??
     escapedVideoUrl.exec(html) ??
     plainVideoUrl.exec(html);
+
   const value = match?.groups?.value;
+
   if (value === undefined) {
     return undefined;
   }
+
   const rawUrl = safeUrl(decodeNestedJsonString(value));
+
   if (rawUrl === undefined) {
     return undefined;
   }
+
   return normalizeMediaUrl(rawUrl);
 };

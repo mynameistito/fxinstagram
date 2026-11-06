@@ -31,9 +31,10 @@ describe("real Bun HTTP router", () => {
         port: 0,
       },
       async (server) => {
-        const response = await fetch(`${server.url}p/ABC`, {
+        const response = await fetch(`${server.url.href}p/ABC`, {
           redirect: "manual",
         });
+
         expect(response.status).toBe(302);
         expect(response.headers.get("location")).toBe(
           "https://instagram.com/p/ABC"
@@ -50,9 +51,10 @@ describe("real Bun HTTP router", () => {
         port: 0,
       },
       async (server) => {
-        const page = await fetch(`${server.url}p/ABC`, {
+        const page = await fetch(`${server.url.href}p/ABC`, {
           headers: { "user-agent": "Discordbot" },
         });
+
         const body = await page.text();
         expect(page.status).toBe(200);
         expect(page.headers.get("content-type")).toContain("text/html");
@@ -64,20 +66,19 @@ describe("real Bun HTTP router", () => {
         expect(body).toContain('property="og:image:height" content="1350"');
 
         const oembed = await fetch(
-          `${server.url}oembed?url=https%3A%2F%2Finstagram.com%2Fp%2FABC`,
+          `${server.url.href}oembed?url=https%3A%2F%2Finstagram.com%2Fp%2FABC`,
           { headers: { "user-agent": "Discordbot" } }
         );
-        // SAFETY: The test server returns the fixed oEmbed shape for this request.
-        const oembedBody = (await oembed.json()) as {
-          provider_name: string;
-          title: string;
-        };
-        expect(oembedBody.provider_name).toBe("fxinstagram");
-        expect(oembedBody.title).toBe("fxinstagram embed");
 
-        const media = await fetch(`${server.url}images/ABC/0`, {
+        expect(await oembed.json()).toMatchObject({
+          provider_name: "fxinstagram",
+          title: "fxinstagram embed",
+        });
+
+        const media = await fetch(`${server.url.href}images/ABC/0`, {
           redirect: "manual",
         });
+
         expect(media.status).toBe(302);
         expect(media.headers.get("location")).toBe(
           "https://cdn.example/image.jpg"
@@ -99,7 +100,10 @@ describe("real Bun HTTP router", () => {
         origin: new URL("https://ig.mynameistito.com"),
       },
       async (server) => {
-        const security = await fetch(`${server.url}.well-known/security.txt`);
+        const security = await fetch(
+          `${server.url.href}.well-known/security.txt`
+        );
+
         expect(security.status).toBe(200);
         expect(security.headers.get("content-type")).toContain("text/plain");
         expect(await security.text()).toBe(
@@ -113,7 +117,10 @@ describe("real Bun HTTP router", () => {
           ].join("\n")
         );
 
-        const policy = await fetch(`${server.url}.well-known/dnt-policy.txt`);
+        const policy = await fetch(
+          `${server.url.href}.well-known/dnt-policy.txt`
+        );
+
         expect(policy.status).toBe(200);
         expect(policy.headers.get("content-type")).toContain("text/plain");
         expect(await policy.text()).toBe(
@@ -129,7 +136,7 @@ describe("real Bun HTTP router", () => {
           ].join("\n")
         );
 
-        const dnt = await fetch(`${server.url}.well-known/dnt`);
+        const dnt = await fetch(`${server.url.href}.well-known/dnt`);
         expect(dnt.status).toBe(200);
         expect(dnt.headers.get("content-type")).toContain(
           "application/tracking-status+json"
@@ -138,28 +145,30 @@ describe("real Bun HTTP router", () => {
           '{"policy": "/.well-known/dnt-policy.txt"}'
         );
         expect(events).toHaveLength(3);
-        expect(events).toEqual(
-          expect.arrayContaining([
-            expect.objectContaining({
-              operation: "content",
-              outcome: "success",
-              requestId: security.headers.get("x-request-id"),
-              status: 200,
-            }),
-            expect.objectContaining({
-              operation: "content",
-              outcome: "success",
-              requestId: policy.headers.get("x-request-id"),
-              status: 200,
-            }),
-            expect.objectContaining({
-              operation: "content",
-              outcome: "success",
-              requestId: dnt.headers.get("x-request-id"),
-              status: 200,
-            }),
-          ])
-        );
+
+        const summaries = events.map((event) => ({
+          operation: event.operation,
+          outcome: event.outcome,
+          requestId: event.requestId,
+          status: event.status,
+        }));
+
+        for (const response of [security, policy, dnt]) {
+          const requestId = response.headers.get("x-request-id");
+
+          expect(requestId).not.toBeNull();
+
+          if (requestId === null) {
+            throw new Error("Response missing request ID");
+          }
+
+          expect(summaries).toContainEqual({
+            operation: "content",
+            outcome: "success",
+            requestId,
+            status: 200,
+          });
+        }
       }
     );
   });

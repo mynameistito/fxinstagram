@@ -1,13 +1,15 @@
 import { Data, Effect, Redacted, Schema } from "effect";
 
+/** Parsed runtime configuration for the application. */
 export interface AppConfig {
   readonly publicOrigin: URL;
   readonly metadataTimeoutMs: number;
   readonly metadataCacheTtlSeconds: number;
   readonly allowedMediaHosts: ReadonlySet<string>;
-  readonly providerCredential?: Redacted.Redacted<string>;
+  readonly providerCredential?: Redacted.Redacted;
 }
 
+/** An invalid or missing runtime configuration value. */
 export class ConfigurationError extends Data.TaggedError("ConfigurationError")<{
   readonly field: string;
   readonly reason: "missing" | "invalid";
@@ -27,6 +29,7 @@ const positiveInteger = (
   value: string
 ): Effect.Effect<number, ConfigurationError> => {
   const parsed = Number(value);
+
   return Number.isSafeInteger(parsed) && parsed > 0
     ? Effect.succeed(parsed)
     : Effect.fail(new ConfigurationError({ field, reason: "invalid" }));
@@ -36,19 +39,24 @@ const parseOrigin = (value: string): Effect.Effect<URL, ConfigurationError> => {
   try {
     const origin = new URL(value);
     const hasCredentials = origin.username !== "" || origin.password !== "";
+
     const hasPathOrQuery =
       origin.pathname !== "/" || origin.search !== "" || origin.hash !== "";
+
     const isLoopback = new Set(["localhost", "127.0.0.1", "[::1]"]).has(
       origin.hostname.toLowerCase()
     );
+
     const hasSafeProtocol =
       origin.protocol === "https:" ||
       (origin.protocol === "http:" && isLoopback);
+
     if (!hasSafeProtocol || hasCredentials || hasPathOrQuery) {
       return Effect.fail(
         new ConfigurationError({ field: "PUBLIC_ORIGIN", reason: "invalid" })
       );
     }
+
     return Effect.succeed(origin);
   } catch {
     return Effect.fail(
@@ -61,6 +69,7 @@ const parseHosts = (
   value: string
 ): Effect.Effect<ReadonlySet<string>, ConfigurationError> => {
   const hosts = value.split(",").map((host) => host.trim().toLowerCase());
+
   if (
     hosts.length === 0 ||
     hosts.some(
@@ -78,6 +87,7 @@ const parseHosts = (
       })
     );
   }
+
   return Effect.succeed(new Set(hosts));
 };
 
@@ -88,11 +98,17 @@ const requiredEnvironment = (input: Environment) => ({
   PUBLIC_ORIGIN: input.PUBLIC_ORIGIN,
 });
 
+/**
+ * Parse runtime environment values into application configuration.
+ * @param input - Environment values to parse.
+ * @returns An effect producing configuration or a configuration error.
+ */
 export const parseAppConfig = (
   input: Environment
 ): Effect.Effect<AppConfig, ConfigurationError> =>
   Effect.gen(function* parseConfig() {
     let raw: Schema.Schema.Type<typeof RawEnvironment>;
+
     try {
       raw = Schema.decodeUnknownSync(RawEnvironment)(
         requiredEnvironment(input)
@@ -102,29 +118,41 @@ export const parseAppConfig = (
         new ConfigurationError({ field: "environment", reason: "missing" })
       );
     }
+
     const publicOrigin = yield* parseOrigin(raw.PUBLIC_ORIGIN);
+
     const metadataTimeoutMs = yield* positiveInteger(
       "METADATA_TIMEOUT_MS",
       raw.METADATA_TIMEOUT_MS
     );
+
     const metadataCacheTtlSeconds = yield* positiveInteger(
       "METADATA_CACHE_TTL_SECONDS",
       raw.METADATA_CACHE_TTL_SECONDS
     );
+
     const allowedMediaHosts = yield* parseHosts(raw.ALLOWED_MEDIA_HOSTS);
     const credential = input.METADATA_PROVIDER_TOKEN?.trim();
+
     const result: AppConfig = {
       allowedMediaHosts,
       metadataCacheTtlSeconds,
       metadataTimeoutMs,
       publicOrigin,
     };
+
     if (credential !== undefined) {
       return { ...result, providerCredential: Redacted.make(credential) };
     }
+
     return result;
   });
 
+/**
+ * Supply defaults for local server configuration.
+ * @param input - Environment values, defaulting to the process environment.
+ * @returns Environment values with local defaults applied.
+ */
 export const localEnvironment = (input: Environment = process.env) => {
   const result = {
     ALLOWED_MEDIA_HOSTS: input.ALLOWED_MEDIA_HOSTS ?? "cdn.example",
@@ -133,11 +161,13 @@ export const localEnvironment = (input: Environment = process.env) => {
     PUBLIC_ORIGIN:
       input.PUBLIC_ORIGIN ?? `http://127.0.0.1:${input.PORT ?? "8787"}`,
   } satisfies Environment;
+
   if (input.METADATA_PROVIDER_TOKEN !== undefined) {
     return {
       ...result,
       METADATA_PROVIDER_TOKEN: input.METADATA_PROVIDER_TOKEN,
     };
   }
+
   return result;
 };

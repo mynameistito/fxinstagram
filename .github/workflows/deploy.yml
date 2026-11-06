@@ -21,9 +21,51 @@ jobs:
       deployments: write
       pull-requests: write
     steps:
+      - name: Check current pull request state before cleanup
+        id: current-pr
+        if: github.event_name == 'pull_request_target'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          [[ "$PR_NUMBER" =~ ^[1-9][0-9]*$ ]]
+          for attempt in 1 2 3; do
+            if state=$(gh api "repos/$GITHUB_REPOSITORY/pulls/$PR_NUMBER" --jq .state); then
+              break
+            fi
+            if [[ "$attempt" == 3 ]]; then
+              echo "Failed to check the current pull request state" >&2
+              exit 1
+            fi
+            sleep "$attempt"
+          done
+          echo "state=$state" >> "$GITHUB_OUTPUT"
+
+      - name: Check state-store compatibility
+        if: github.event_name != 'pull_request_target' || steps.current-pr.outputs.state == 'closed'
+        env:
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+        run: |
+          # The pinned action uses Alchemy beta.85, which expects state-store v8.
+          # Never let it bootstrap or migrate an unknown or incompatible store.
+          subdomain=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
+            -H "Authorization: Bearer $CLOUDFLARE_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/accounts/$CLOUDFLARE_ACCOUNT_ID/workers/subdomain" |
+            node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const d = JSON.parse(s); if (d.success !== true || !/^[a-z0-9-]+$/.test(d.result?.subdomain ?? "")) process.exit(1); console.log(d.result.subdomain); });')
+          version=$(curl --fail --silent --show-error --connect-timeout 10 --max-time 20 \
+            "https://alchemy-state-store.$subdomain.workers.dev/version" |
+            node -e 'let s=""; process.stdin.on("data", c => s += c); process.stdin.on("end", () => { const d = JSON.parse(s); if (!Number.isInteger(d.version)) process.exit(1); console.log(d.version); });')
+          if [[ "$version" != 8 ]]; then
+            echo "::error::The pinned Alchemy action requires state-store v8; deployment and cleanup are blocked until the runtime and store are coordinated."
+            exit 1
+          fi
+
       - name: Run Alchemy deployment
+        # A reopen after the check can still race cleanup; the action must recheck at destruction.
+        if: github.event_name != 'pull_request_target' || steps.current-pr.outputs.state == 'closed'
         # Pin the published action release immutably.
-        uses: mynameistito/alchemy-deploy@4e29a36d61cf8cc4277bdcd35d7b3eff13150b38 # v3.2.0
+        uses: mynameistito/alchemy-deploy@0db293d18c4d6d99926cd74488f7eb6a26aa73bc # v4.0.0
         env:
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}

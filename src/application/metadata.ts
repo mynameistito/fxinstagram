@@ -37,6 +37,7 @@ export interface MetadataService {
   ) => Effect.Effect<InstagramPost, MetadataError | CacheError>;
 }
 
+/** Effect service tag for metadata retrieval. */
 export class MetadataServiceTag extends Context.Service<
   MetadataServiceTag,
   MetadataService
@@ -69,6 +70,7 @@ const getWithRetries = (
         }),
     })
   );
+
   const run = (
     remaining: number,
     retryCount: number
@@ -86,6 +88,7 @@ const getWithRetries = (
           : Effect.fail(error)
       )
     );
+
   return run(config.retryLimit, 0);
 };
 
@@ -99,8 +102,10 @@ export const makeMetadataService = Effect.gen(function* makeMetadataService() {
   const get = (location: InstagramLocation) => {
     const key = metadataCacheKey(location);
     const started = Date.now();
+
     return Effect.gen(function* getMetadata() {
       const cached = yield* cache.get(key);
+
       if (cached !== undefined) {
         yield* telemetry.record({
           cache: "hit",
@@ -110,8 +115,10 @@ export const makeMetadataService = Effect.gen(function* makeMetadataService() {
           provider: config.provider,
           retryCount: 0,
         });
+
         return cached;
       }
+
       const retrieved = yield* getWithRetries(source, location, config);
       yield* cache.put(key, retrieved.post, Duration.millis(config.cacheTtlMs));
       yield* telemetry.record({
@@ -122,6 +129,7 @@ export const makeMetadataService = Effect.gen(function* makeMetadataService() {
         provider: config.provider,
         retryCount: retrieved.retryCount,
       });
+
       return retrieved.post;
     }).pipe(
       // oxlint-disable-next-line promise/prefer-await-to-callbacks

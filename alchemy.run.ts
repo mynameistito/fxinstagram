@@ -9,6 +9,7 @@ import { Config, Effect } from "effect";
 const PROD_STAGE = "prod";
 const WORKER_NAME = "fxinstagram";
 const CUSTOM_DOMAIN = "ig.mynameistito.com";
+
 const isAlchemyDev = ["1", "true"].includes(
   process.env.ALCHEMY_DEV?.toLowerCase() ?? ""
 );
@@ -51,7 +52,11 @@ export type WorkerIdentity =
       readonly workersDev: true;
     };
 
-/** Resolve an isolated Worker identity, reserving the custom domain for prod. */
+/**
+ * Resolve an isolated Worker identity, reserving the custom domain for prod.
+ * @param stage - Deployment stage.
+ * @returns The stage-specific Worker identity.
+ */
 export const resolveWorkerIdentity = (stage: string): WorkerIdentity =>
   stage === PROD_STAGE
     ? {
@@ -61,9 +66,14 @@ export const resolveWorkerIdentity = (stage: string): WorkerIdentity =>
       }
     : { name: `${WORKER_NAME}-${stage}`, workersDev: true };
 
-/** Declare the Worker with concrete stage-specific identity. */
+/**
+ * Declare the Worker with concrete stage-specific identity.
+ * @param stage - Deployment stage.
+ * @returns The Worker resource declaration.
+ */
 export const makeWorker = (stage: string) => {
   const identity = resolveWorkerIdentity(stage);
+
   return Cloudflare.Worker("FxinstagramWorker", {
     ...identity,
     env: workerEnvironment,
@@ -73,7 +83,7 @@ export const makeWorker = (stage: string) => {
 };
 
 /** Build the stage resources. */
-export const buildStack = Effect.gen(function* buildStack() {
+const buildStack = Effect.gen(function* buildStack() {
   const stage = yield* Stage;
   const worker = yield* makeWorker(stage);
 

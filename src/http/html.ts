@@ -6,18 +6,23 @@ const escapeHtml = (value: string): string =>
       case "&": {
         return "&amp;";
       }
+
       case "<": {
         return "&lt;";
       }
+
       case ">": {
         return "&gt;";
       }
+
       case '"': {
         return "&quot;";
       }
+
       case "'": {
         return "&#39;";
       }
+
       default: {
         return character;
       }
@@ -30,6 +35,10 @@ const meta = (name: string, content: string): string =>
 const namedMeta = (name: string, content: string): string =>
   `<meta name="${escapeHtml(name)}" content="${escapeHtml(content)}">`;
 
+/**
+ * Render the public landing page.
+ * @returns The HTML document.
+ */
 export const renderIndexDocument = (): string => `<!doctype html>
 <html lang="en">
   <head>
@@ -104,6 +113,11 @@ export const renderIndexDocument = (): string => `<!doctype html>
   </body>
 </html>`;
 
+/**
+ * Render metadata as an escaped HTML document.
+ * @param document - Metadata to render.
+ * @returns The HTML document.
+ */
 export const renderDocument = (document: EmbedDocument): string => {
   const tags = [
     meta("og:title", document.title),
@@ -154,21 +168,30 @@ export const renderDocument = (document: EmbedDocument): string => {
       ? ""
       : `<link rel="alternate" type="application/json+oembed" href="${escapeHtml(document.oEmbedUrl.toString())}">`,
   ].join("");
+
   return `<!doctype html><html><head><meta charset="utf-8"><title>${escapeHtml(document.title)}</title>${tags}</head><body></body></html>`;
 };
 
+/**
+ * Build a bounded HTML response for an embed.
+ * @param document - Metadata to render.
+ * @param status - HTTP response status.
+ * @returns The HTTP response.
+ */
 export const htmlResponse = (
   document: EmbedDocument,
   // oxlint-disable-next-line sonarjs/max-union-size -- HTTP status is intentionally explicit.
   status: 200 | 404 | 422 | 429 | 503
 ): Response => {
   const body = renderDocument(document);
+
   if (body.length > 16_384) {
     return new Response("embed response too large", {
       headers: { "Content-Type": "text/plain; charset=utf-8" },
       status: 422,
     });
   }
+
   return new Response(body, {
     headers: {
       "Cache-Control": "public, max-age=60",
@@ -180,6 +203,10 @@ export const htmlResponse = (
   });
 };
 
+/**
+ * Build the public landing page response.
+ * @returns The HTTP response.
+ */
 export const indexResponse = (): Response =>
   new Response(renderIndexDocument(), {
     headers: {

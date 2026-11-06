@@ -45,6 +45,7 @@ describe("public Instagram HTML parser", () => {
         )
       )
     );
+
     expect(result).toMatchObject({
       _tag: "Failure",
       failure: {
@@ -63,6 +64,7 @@ describe("public Instagram HTML parser", () => {
         )
       )
     );
+
     expect(result).toMatchObject({
       _tag: "Failure",
       failure: { _tag: "ProviderResponseInvalid" },

@@ -26,9 +26,11 @@ const config = Effect.runSync(
     METADATA_TIMEOUT_MS: "100",
   })
 );
+
 const location = Effect.runSync(
   parseInstagramUrl("https://instagram.com/p/ABC")
 );
+
 const fixture: InstagramPost = {
   canonicalUrl: new URL("https://instagram.com/p/ABC"),
   caption: "fixture caption",
@@ -36,6 +38,7 @@ const fixture: InstagramPost = {
   shortcode: "ABC",
   username: "alice",
 };
+
 const fixturePayload = {
   canonicalUrl: "https://instagram.com/p/ABC",
   caption: "fixture caption",
@@ -66,12 +69,15 @@ const serviceLayer = (events: MetadataTelemetryEvent[]) =>
 describe("Effect metadata and cache services", () => {
   test("fills the cache and returns the cached value on the next read", async () => {
     const events: MetadataTelemetryEvent[] = [];
+
     const program = Effect.gen(function* program() {
       const service = yield* MetadataServiceTag;
       const first = yield* service.get(location);
       const second = yield* service.get(location);
+
       return { first, second };
     }).pipe(Effect.provide(serviceLayer(events)));
+
     const result = await Effect.runPromise(program);
     expect(result.first).toEqual(result.second);
     expect(events.map((event) => event.cache)).toEqual(["miss", "hit"]);
@@ -79,6 +85,7 @@ describe("Effect metadata and cache services", () => {
 
   test("maps invalid provider fixtures without caching the failure", async () => {
     const events: MetadataTelemetryEvent[] = [];
+
     const invalid = Layer.effect(MetadataServiceTag, makeMetadataService).pipe(
       Layer.provide(
         Layer.mergeAll(
@@ -89,12 +96,15 @@ describe("Effect metadata and cache services", () => {
         )
       )
     );
+
     const result = await Effect.runPromise(
       Effect.gen(function* result() {
         const service = yield* MetadataServiceTag;
+
         return yield* Effect.result(service.get(location));
       }).pipe(Effect.provide(invalid))
     );
+
     expect(result).toMatchObject({
       _tag: "Failure",
       failure: { _tag: "ProviderResponseInvalid", provider: "fixture-json" },
@@ -105,6 +115,7 @@ describe("Effect metadata and cache services", () => {
   test("expires entries using the Effect test clock", async () => {
     const cache = layerMemory(config);
     let now = 0;
+
     const clock: Clock.Clock = {
       currentTimeMillis: Effect.sync(() => now),
       currentTimeMillisUnsafe: () => now,
@@ -114,16 +125,19 @@ describe("Effect metadata and cache services", () => {
       monotonicTimeNanosUnsafe: () => BigInt(now) * 1_000_000n,
       sleep: () => Effect.void,
     };
+
     const program = Effect.gen(function* program() {
       const cacheService = yield* MetadataCacheService;
       yield* cacheService.put("key", fixture, Duration.seconds(1));
       const before = yield* cacheService.get("key");
       now = 1000;
       const after = yield* cacheService.get("key");
+
       return { after, before };
     }).pipe(
       Effect.provide(Layer.provide(cache, Layer.succeed(Clock.Clock, clock)))
     );
+
     const result = await Effect.runPromise(program);
     expect(result.before).toBeDefined();
     expect(result.after).toBeUndefined();

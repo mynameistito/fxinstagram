@@ -5,6 +5,7 @@ import { startServer } from "@/runtime/server.ts";
 
 const environment = localEnvironment();
 const config = await Effect.runPromise(parseAppConfig(environment));
+
 const server = await startServer({
   hostname: process.env.HOSTNAME ?? "127.0.0.1",
   mediaHosts: config.allowedMediaHosts,
@@ -12,4 +13,4 @@ const server = await startServer({
   port: Number(process.env.PORT ?? "8787"),
 });
 
-console.log(`fxinstagram listening on ${server.url}`);
+console.log(`fxinstagram listening on ${server.url.href}`);

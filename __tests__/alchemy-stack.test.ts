@@ -16,7 +16,7 @@ describe("alchemy stack", () => {
   });
 });
 
-describe(resolveWorkerIdentity, () => {
+describe("resolveWorkerIdentity", () => {
   test("pins the production name and custom domain only in prod", () => {
     expect(resolveWorkerIdentity("prod")).toStrictEqual({
       domain: "ig.mynameistito.com",

@@ -14,8 +14,10 @@ describe("metadata configuration and cache identity", () => {
         METADATA_PROVIDER_URL: "https://provider.example/metadata",
       })
     );
+
     expect(config.provider).toBe("fixture-json");
     expect(config.providerUrl.href).toBe("https://provider.example/metadata");
+    // oxlint-disable-next-line typescript/no-base-to-string -- Redacted overrides string conversion; this assertion verifies it.
     expect(String(config.credential)).not.toContain("secret-token");
   });
 

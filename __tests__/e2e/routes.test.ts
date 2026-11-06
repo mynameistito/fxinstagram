@@ -1,7 +1,7 @@
 // oxlint-disable vitest/prefer-importing-vitest-globals
 import { describe, expect, test } from "bun:test";
 
-import { Effect } from "effect";
+import { Effect, Schema } from "effect";
 
 import type { HttpTelemetryEvent } from "@/http/telemetry.ts";
 
@@ -60,32 +60,50 @@ describe("local real-entrypoint route contracts", () => {
         origin: new URL("http://127.0.0.1:0"),
       },
       async (server) => {
-        const post = await fetch(`${server.url}p/ABC`, bot);
+        const post = await fetch(`${server.url.href}p/ABC`, bot);
         expect(post.status).toBe(200);
         expect(post.headers.get("x-request-id")).toMatch(/^[0-9a-f-]{36}$/u);
         expect(await post.text()).toContain("post caption");
 
-        const reel = await fetch(`${server.url}reel/REEL`, bot);
+        const reel = await fetch(`${server.url.href}reel/REEL`, bot);
         expect(reel.status).toBe(200);
         expect(await reel.text()).toContain("video.mp4");
 
-        const story = await fetch(`${server.url}stories/alice/STORY`, bot);
+        const story = await fetch(`${server.url.href}stories/alice/STORY`, bot);
         expect(story.status).toBe(200);
 
-        const gallery = await fetch(`${server.url}p/GALLERY?gallery=1`, bot);
+        const gallery = await fetch(
+          `${server.url.href}p/GALLERY?gallery=1`,
+          bot
+        );
+
         expect(gallery.status).toBe(200);
         expect(await gallery.text()).toContain("one.jpg");
 
-        const grid = await fetch(`${server.url}grid/GALLERY`, bot);
+        const grid = await fetch(`${server.url.href}grid/GALLERY`, bot);
         expect(grid.status).toBe(200);
 
         const oembedUrl = encodeURIComponent("https://instagram.com/p/ABC");
-        const oembed = await fetch(`${server.url}oembed?url=${oembedUrl}`);
+        const oembed = await fetch(`${server.url.href}oembed?url=${oembedUrl}`);
         expect(oembed.status).toBe(200);
-        expect(await oembed.json()).toEqual({
-          html: expect.any(String),
+
+        const raw: unknown = await oembed.json();
+
+        const body = Schema.decodeUnknownSync(
+          Schema.Struct({
+            html: Schema.String,
+            provider_name: Schema.String,
+            provider_url: Schema.String,
+            title: Schema.String,
+            type: Schema.String,
+            version: Schema.String,
+          })
+        )(raw);
+
+        expect(raw).toEqual({
+          html: body.html,
           provider_name: "fxinstagram",
-          provider_url: `${server.url}`,
+          provider_url: server.url.href,
           title: "fxinstagram embed",
           type: "rich",
           version: "1.0",
@@ -101,16 +119,18 @@ describe("local real-entrypoint route contracts", () => {
         origin: new URL("http://127.0.0.1:0"),
       },
       async (server) => {
-        const image = await fetch(`${server.url}p/ABC?direct=1`, {
+        const image = await fetch(`${server.url.href}p/ABC?direct=1`, {
           ...bot,
           redirect: "manual",
         });
+
         expect(image.status).toBe(302);
         expect(image.headers.get("location")).toContain(`/images/ABC/0`);
 
-        const video = await fetch(`${server.url}videos/REEL/0`, {
+        const video = await fetch(`${server.url.href}videos/REEL/0`, {
           redirect: "manual",
         });
+
         expect(video.status).toBe(302);
         expect(video.headers.get("location")).toBe(
           "https://cdn.example/video.mp4"
@@ -133,7 +153,7 @@ describe("local real-entrypoint route contracts", () => {
         origin: new URL("http://127.0.0.1:0"),
       },
       async (server) => {
-        const response = await fetch(`${server.url}p/ABC`, bot);
+        const response = await fetch(`${server.url.href}p/ABC`, bot);
         expect(events).toHaveLength(1);
         expect(events[0]).toMatchObject({
           operation: "content",

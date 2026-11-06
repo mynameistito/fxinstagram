@@ -28,13 +28,16 @@ describe("local resilience and abuse controls", () => {
         rateLimit: { maxRequests: 1, windowMs: 60_000 },
       },
       async (server) => {
-        const first = await fetch(`${server.url}p/ABC`, {
+        const first = await fetch(`${server.url.href}p/ABC`, {
           headers: { "user-agent": "Discordbot" },
         });
+
         expect(first.status).toBe(422);
-        const limited = await fetch(`${server.url}p/ABC`, {
+
+        const limited = await fetch(`${server.url.href}p/ABC`, {
           headers: { "user-agent": "Discordbot" },
         });
+
         expect(limited.status).toBe(429);
         expect(await limited.text()).not.toContain("malformed");
         expect(limited.headers.get("retry-after")).toBe("60");
@@ -51,11 +54,13 @@ describe("local resilience and abuse controls", () => {
           retryAfterMs: 1,
         }),
     };
+
     const timeout: InstagramMetadataSource = {
       find: () => Effect.never,
     };
-    const run = (source: InstagramMetadataSource): Promise<number> =>
-      withTestServer(
+
+    const run = async (source: InstagramMetadataSource): Promise<number> =>
+      await withTestServer(
         {
           metadata: {
             cacheMaxEntries: 2,
@@ -69,12 +74,14 @@ describe("local resilience and abuse controls", () => {
           source,
         },
         async (server) => {
-          const response = await fetch(`${server.url}p/ABC`, {
+          const response = await fetch(`${server.url.href}p/ABC`, {
             headers: { "user-agent": "Discordbot" },
           });
+
           return response.status;
         }
       );
+
     const statuses = await Promise.all([run(rateLimited), run(timeout)]);
     expect(statuses).toEqual([429, 503]);
   });
@@ -89,6 +96,7 @@ describe("local resilience and abuse controls", () => {
         }),
       put: (_key, _value, _ttl: Duration.Duration) => Effect.void,
     };
+
     await withTestServer(
       {
         cache,
@@ -96,13 +104,14 @@ describe("local resilience and abuse controls", () => {
         origin: new URL("http://127.0.0.1:0"),
       },
       async (server) => {
-        const cached = await fetch(`${server.url}p/ABC`, {
+        const cached = await fetch(`${server.url.href}p/ABC`, {
           headers: { "user-agent": "Discordbot" },
         });
+
         expect(cached.status).toBe(503);
         expect(await cached.text()).not.toContain("private cache detail");
 
-        const oversized = await fetch(`${server.url}${"p/"}${"A".repeat(600)}`);
+        const oversized = await fetch(`${server.url.href}p/${"A".repeat(600)}`);
         expect(oversized.status).toBe(422);
         await withTestServer(
           {
@@ -122,9 +131,10 @@ describe("local resilience and abuse controls", () => {
             origin: new URL("http://127.0.0.1:0"),
           },
           async (unsafeServer) => {
-            const unsafe = await fetch(`${unsafeServer.url}p/ABC`, {
+            const unsafe = await fetch(`${unsafeServer.url.href}p/ABC`, {
               headers: { "user-agent": "Discordbot" },
             });
+
             expect(unsafe.status).toBe(422);
           }
         );

@@ -1,5 +1,7 @@
 import { describe, expect, test } from "bun:test";
 
+import { Effect } from "effect";
+
 import type { EmbedService } from "@/application/embed.ts";
 import { renderDocument, renderIndexDocument } from "@/http/html.ts";
 import { classifyUserAgent, statusForError } from "@/http/policy.ts";
@@ -45,6 +47,7 @@ describe("HTTP policies and projection", () => {
       imageWidth: 1080,
       title: "<unsafe> & title",
     });
+
     expect(html).toContain("&lt;script&gt;");
     expect(html).toContain("&quot;quoted&quot;");
     expect(html).not.toContain("<script>");
@@ -70,6 +73,7 @@ describe("HTTP policies and projection", () => {
       title: "@alice",
       videoUrl: new URL("https://scontent.cdninstagram.com/video.mp4?a=1&b=2"),
     });
+
     expect(html).toContain('property="og:video:type" content="video/mp4"');
     expect(html).toContain(
       'property="og:image" content="https://scontent.cdninstagram.com/poster.jpg"'
@@ -104,8 +108,12 @@ describe("HTTP policies and projection", () => {
   });
 
   test("routes the exact root path to the public index page", async () => {
-    // SAFETY: The root route returns before any EmbedService method is accessed.
-    const router = makeRouter({} as EmbedService);
+    const service: EmbedService = {
+      resolve: () => Effect.die("Unexpected embed lookup"),
+      resolveMedia: () => Effect.die("Unexpected media lookup"),
+    };
+
+    const router = makeRouter(service);
     const response = await router(new Request("https://example.com/"));
     expect(response.status).toBe(200);
     expect(response.headers.get("content-security-policy")).toBe(

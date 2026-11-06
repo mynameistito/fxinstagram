@@ -4,9 +4,14 @@ import core from "ultracite/oxlint/core";
 import { selectJsPlugins } from "ultracite/oxlint/js-plugins";
 import vitest from "ultracite/oxlint/vitest";
 
+const jsPlugins = selectJsPlugins(["github", "sonarjs", "jsdoc-js", "tsdoc"]);
+
 export default defineConfig({
-  extends: [core, vitest, antiSlop, selectJsPlugins(["github", "sonarjs"])],
+  env: core.env,
+  extends: [antiSlop, core, vitest, jsPlugins],
   ignorePatterns: core.ignorePatterns,
+  jsPlugins: jsPlugins.jsPlugins,
+  options: { typeAware: true },
   overrides: [
     {
       files: ["src/**/*.{ts,tsx}"],

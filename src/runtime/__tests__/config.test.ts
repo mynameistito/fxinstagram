@@ -17,10 +17,12 @@ describe("runtime configuration", () => {
     const config = Effect.runSync(
       parseAppConfig({ ...valid, METADATA_PROVIDER_TOKEN: "secret-token" })
     );
+
     expect(config.publicOrigin.href).toBe("https://fxinstagram.example/");
     expect(config.allowedMediaHosts).toEqual(
       new Set(["cdn.example", "media.example"])
     );
+    // oxlint-disable-next-line typescript/no-base-to-string -- Redacted overrides string conversion; this assertion verifies it.
     expect(String(config.providerCredential)).not.toContain("secret-token");
   });
 
@@ -33,6 +35,7 @@ describe("runtime configuration", () => {
       const config = Effect.runSync(
         parseAppConfig({ ...valid, PUBLIC_ORIGIN: publicOrigin })
       );
+
       expect(config.publicOrigin.href).toBe(publicOrigin);
     }
 
